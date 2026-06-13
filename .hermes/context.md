@@ -17,12 +17,13 @@ Build an MVP bridge that can carry bitchat-like text messages over MeshCore/LoRa
 - `LOOPS.md` — development loop protocol
 - `STATUS.md` — current state and next action
 - `DECISIONS.md` — decisions and pending gates
+- `evidence/meshcore-payload-budget.md` — MeshCore payload budget evidence
 
 ## Current MVP scope
 
 In scope:
 
-- MeshCore custom/group payload tunnel
+- MeshCore companion channel data datagram tunnel
 - tiny bridge-frame protocol
 - codec and fragmentation tests
 - Python bridge harness
@@ -37,6 +38,17 @@ Out of scope for MVP:
 - images/files
 - production security claims
 
+## Current technical decision
+
+Use MeshCore companion channel data datagrams first:
+
+- companion command: `0x3E`
+- radio payload: `PAYLOAD_TYPE_GRP_DATA` (`0x06`)
+- development data type: `0xFFFF`
+- companion binary payload limit: 163 bytes
+- bridge frame fixed overhead: 23 bytes
+- max v0 fragment body: 140 bytes
+
 ## Approval boundaries
 
 Do not push public repos, post publicly, or claim production security without Eric's approval.
@@ -44,4 +56,4 @@ Do not handle raw secrets in project files.
 
 ## Next action
 
-Run MVP-02: inspect MeshCore packet/payload/companion docs and write `evidence/meshcore-payload-budget.md`.
+Run MVP-03: update `PROTOCOL.md` to lock bridge frame v0 around the 163-byte carrier budget and create `tests/vectors/bridge-frame-v0.json`.

@@ -12,9 +12,15 @@ Decision: Use repo-centered, issue-per-loop, artifact-first development.
 
 Rationale: Avoids usage-cap failures and preserves continuity across sessions.
 
+## D003 — MVP MeshCore carrier
+
+Decision: Use MeshCore companion channel data datagrams first: companion command `0x3E`, radio-level `PAYLOAD_TYPE_GRP_DATA`, development `data_type = 0xFFFF`.
+
+Rationale: The path is already exposed by MeshCore's companion protocol, carries opaque binary payloads, and avoids invasive firmware protocol changes for the first MVP tunnel. The companion payload limit is 163 bytes, so bridge v0 should budget for a 140-byte fragment body after 23 bytes of bridge overhead.
+
 ## Pending decisions
 
-- Carrier payload: `RAW_CUSTOM` vs `GRP_DATA` vs new payload type.
-- Client interface: serial first, BLE first, or both.
+- Client interface priority after codec: serial first, BLE first, or both.
 - Test hardware: which MeshCore-supported boards.
 - MVP security: plaintext lab-only vs bridge-level test encryption.
+- Long-term app namespace: register a `data_type` instead of using development `0xFFFF`.
