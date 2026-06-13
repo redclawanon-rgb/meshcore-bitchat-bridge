@@ -15,6 +15,15 @@ from .bridge_frame import (
     reassemble_fragments,
 )
 from .message import frames_to_text, max_text_bytes, text_to_frames
+from .meshcore_companion import (
+    CMD_SEND_CHANNEL_DATA,
+    DATA_TYPE_DEV,
+    FLOOD_PATH,
+    RESP_CODE_CHANNEL_DATA_RECV,
+    InboundChannelData,
+    build_channel_data_command,
+    parse_channel_data_recv,
+)
 
 __all__ = [
     "BridgeFrame",
@@ -32,4 +41,11 @@ __all__ = [
     "frames_to_text",
     "max_text_bytes",
     "text_to_frames",
+    "CMD_SEND_CHANNEL_DATA",
+    "DATA_TYPE_DEV",
+    "FLOOD_PATH",
+    "RESP_CODE_CHANNEL_DATA_RECV",
+    "InboundChannelData",
+    "build_channel_data_command",
+    "parse_channel_data_recv",
 ]
