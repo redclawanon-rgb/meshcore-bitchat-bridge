@@ -2,7 +2,7 @@
 
 ## Current state
 
-Local-first development is underway. MVP-03 bridge frame v0 is locked and MVP-04 local codec is implemented with unit tests.
+Local-first development is underway. Bridge frame v0 is locked, local codec is implemented, and message-level UTF-8 text fragmentation/reassembly helpers are implemented.
 
 ## Verified
 
@@ -16,33 +16,29 @@ Local-first development is underway. MVP-03 bridge frame v0 is locked and MVP-04
 - `PROTOCOL.md` locked bridge frame v0 around MeshCore companion channel data datagrams.
 - Test vector created at `tests/vectors/bridge-frame-v0.json`.
 - Python codec implemented at `tools/bridge_frame_codec/`.
+- Text helpers implemented in `tools/bridge_frame_codec/message.py`.
 - Verification command passed:
 
 ```text
 python3 -m unittest discover -s tests -v
-Ran 9 tests in 0.001s
+Ran 16 tests in 0.002s
 OK
 ```
 
 ## Current milestone
 
-MVP-05: fragmentation/reassembly harness and message-level behavior.
+MVP-06: local bridge harness CLI.
 
 ## Next recommended loop
 
-Extend the local codec into a message-level harness:
+Create a local CLI that can encode/decode text frames without hardware:
 
-- create `tools/bridge_frame_codec/message.py` or extend existing module carefully;
-- add text helper functions:
-  - UTF-8 text → `TEXT_FRAGMENT` frames;
-  - frames → UTF-8 text;
-- add deterministic message IDs for tests;
-- add tests for:
-  - empty text;
-  - ASCII text;
-  - multi-byte UTF-8 split across fragments;
-  - message too large for 255 fragments;
-  - mixed message IDs rejected.
+- create `tools/bridge_cli.py`;
+- commands:
+  - `encode-text --bridge-id HEX_OR_INT --message-id HEX_OR_INT TEXT` → JSON frames with hex payloads;
+  - `decode-frames FRAME_HEX...` → reassembled text;
+- add tests or documented smoke commands;
+- keep hardware and BLE out of scope for this loop.
 
 ## Blockers
 

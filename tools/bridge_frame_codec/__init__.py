@@ -14,6 +14,7 @@ from .bridge_frame import (
     fragment_payload,
     reassemble_fragments,
 )
+from .message import frames_to_text, max_text_bytes, text_to_frames
 
 __all__ = [
     "BridgeFrame",
@@ -28,4 +29,7 @@ __all__ = [
     "decode_frame",
     "fragment_payload",
     "reassemble_fragments",
+    "frames_to_text",
+    "max_text_bytes",
+    "text_to_frames",
 ]
