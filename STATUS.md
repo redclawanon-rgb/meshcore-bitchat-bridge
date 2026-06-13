@@ -2,7 +2,7 @@
 
 ## Current state
 
-Project scaffold created. MVP-02 MeshCore packet budget evidence completed.
+Local-first development is underway. MVP-03 bridge frame v0 is locked and MVP-04 local codec is implemented with unit tests.
 
 ## Verified
 
@@ -13,22 +13,36 @@ Project scaffold created. MVP-02 MeshCore packet budget evidence completed.
   - `docs/payloads.md`
   - `docs/companion_protocol.md`
 - Evidence written to `evidence/meshcore-payload-budget.md`.
+- `PROTOCOL.md` locked bridge frame v0 around MeshCore companion channel data datagrams.
+- Test vector created at `tests/vectors/bridge-frame-v0.json`.
+- Python codec implemented at `tools/bridge_frame_codec/`.
+- Verification command passed:
+
+```text
+python3 -m unittest discover -s tests -v
+Ran 9 tests in 0.001s
+OK
+```
 
 ## Current milestone
 
-MVP-03: lock bridge frame v0 protocol around MeshCore companion channel data budget.
+MVP-05: fragmentation/reassembly harness and message-level behavior.
 
 ## Next recommended loop
 
-Update `PROTOCOL.md` using the evidence:
+Extend the local codec into a message-level harness:
 
-- carrier: companion channel data datagram / radio `PAYLOAD_TYPE_GRP_DATA`, command `0x3E`
-- development data type: `0xFFFF`
-- max companion binary payload: 163 bytes
-- bridge frame overhead: 23 bytes
-- max fragment body: 140 bytes
-
-Then create initial test vector in `tests/vectors/bridge-frame-v0.json`.
+- create `tools/bridge_frame_codec/message.py` or extend existing module carefully;
+- add text helper functions:
+  - UTF-8 text → `TEXT_FRAGMENT` frames;
+  - frames → UTF-8 text;
+- add deterministic message IDs for tests;
+- add tests for:
+  - empty text;
+  - ASCII text;
+  - multi-byte UTF-8 split across fragments;
+  - message too large for 255 fragments;
+  - mixed message IDs rejected.
 
 ## Blockers
 

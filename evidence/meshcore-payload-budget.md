@@ -95,9 +95,9 @@ payload_len: 1
 crc16: 2
 ```
 
-Total fixed overhead: **23 bytes**.
+Total fixed overhead in the original draft was estimated as 23 bytes. The implemented v0 frame was verified at **22 bytes** fixed overhead because the fixed fields are 20 bytes before payload plus 2 CRC bytes.
 
-Usable fragment body: **163 - 23 = 140 bytes**.
+Usable fragment body: **163 - 22 = 141 bytes**.
 
 This is enough for short text messages and enough to fragment longer messages. It is not enough for rich bitchat packets without fragmentation.
 
@@ -125,4 +125,4 @@ Minimum reassembly state:
 
 ## Next step
 
-Update `PROTOCOL.md` to lock v0 around a 163-byte frame budget and 140-byte max fragment body, then implement a local codec test harness.
+Update `PROTOCOL.md` to lock v0 around a 163-byte frame budget and 141-byte max fragment body, then implement a local codec test harness.

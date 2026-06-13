@@ -16,7 +16,7 @@ Rationale: Avoids usage-cap failures and preserves continuity across sessions.
 
 Decision: Use MeshCore companion channel data datagrams first: companion command `0x3E`, radio-level `PAYLOAD_TYPE_GRP_DATA`, development `data_type = 0xFFFF`.
 
-Rationale: The path is already exposed by MeshCore's companion protocol, carries opaque binary payloads, and avoids invasive firmware protocol changes for the first MVP tunnel. The companion payload limit is 163 bytes, so bridge v0 should budget for a 140-byte fragment body after 23 bytes of bridge overhead.
+Rationale: The path is already exposed by MeshCore's companion protocol, carries opaque binary payloads, and avoids invasive firmware protocol changes for the first MVP tunnel. The companion payload limit is 163 bytes, so bridge v0 budgets for a 141-byte fragment body after 22 bytes of bridge overhead.
 
 ## Pending decisions
 

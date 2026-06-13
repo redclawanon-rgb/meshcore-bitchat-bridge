@@ -12,12 +12,15 @@ Build an MVP bridge that can carry bitchat-like text messages over MeshCore/LoRa
 
 - `README.md` — project overview
 - `DESIGN.md` — architecture approach
-- `PROTOCOL.md` — bridge frame draft
+- `PROTOCOL.md` — bridge frame v0 protocol
 - `THREAT_MODEL.md` — security posture
 - `LOOPS.md` — development loop protocol
 - `STATUS.md` — current state and next action
 - `DECISIONS.md` — decisions and pending gates
 - `evidence/meshcore-payload-budget.md` — MeshCore payload budget evidence
+- `tools/bridge_frame_codec/` — local Python bridge-frame codec
+- `tests/test_bridge_frame_codec.py` — codec/unit tests
+- `tests/vectors/bridge-frame-v0.json` — canonical v0 test vector
 
 ## Current MVP scope
 
@@ -46,8 +49,17 @@ Use MeshCore companion channel data datagrams first:
 - radio payload: `PAYLOAD_TYPE_GRP_DATA` (`0x06`)
 - development data type: `0xFFFF`
 - companion binary payload limit: 163 bytes
-- bridge frame fixed overhead: 23 bytes
-- max v0 fragment body: 140 bytes
+- bridge frame fixed overhead: 22 bytes
+- max v0 fragment body: 141 bytes
+- CRC: CRC-16/XMODEM stored little-endian
+
+## Verification command
+
+```bash
+python3 -m unittest discover -s tests -v
+```
+
+Latest verified result: 9 tests passed.
 
 ## Approval boundaries
 
@@ -56,4 +68,4 @@ Do not handle raw secrets in project files.
 
 ## Next action
 
-Run MVP-03: update `PROTOCOL.md` to lock bridge frame v0 around the 163-byte carrier budget and create `tests/vectors/bridge-frame-v0.json`.
+Run MVP-05: add message-level text helpers and fragmentation/reassembly tests around the v0 frame codec.
