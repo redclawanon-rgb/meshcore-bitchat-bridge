@@ -1,0 +1,17 @@
+# local/editor
+.DS_Store
+.env
+.env.*
+*.log
+
+# build artifacts
+.pio/
+build/
+dist/
+__pycache__/
+.pytest_cache/
+
+# secrets
+*.pem
+*.key
+secrets.*
