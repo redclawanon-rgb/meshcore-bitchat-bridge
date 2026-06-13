@@ -19,8 +19,10 @@ Build an MVP bridge that can carry bitchat-like text messages over MeshCore/LoRa
 - `DECISIONS.md` — decisions and pending gates
 - `evidence/meshcore-payload-budget.md` — MeshCore payload budget evidence
 - `tools/bridge_frame_codec/` — local Python bridge-frame/message codec
+- `tools/bridge_cli.py` — local encode/decode CLI harness
 - `tests/test_bridge_frame_codec.py` — frame codec/unit tests
 - `tests/test_bridge_message.py` — text message helper tests
+- `tests/test_bridge_cli.py` — local CLI tests
 - `tests/vectors/bridge-frame-v0.json` — canonical v0 test vector
 
 ## Current MVP scope
@@ -61,13 +63,14 @@ Use MeshCore companion channel data datagrams first:
 python3 -m unittest discover -s tests -v
 ```
 
-Latest verified result: 16 tests passed.
+Latest verified result: 19 tests passed.
 
 ## Approval boundaries
 
-Do not push public repos, post publicly, or claim production security without Eric's approval.
+Eric approved taking this project locally to its logical conclusion: continue local implementation, tests, docs, and commits through the MVP path without asking before each bounded loop.
+Do not push public repos, post publicly, buy/order hardware, access secrets, or claim production security without separate explicit approval.
 Do not handle raw secrets in project files.
 
 ## Next action
 
-Run MVP-06: add a local CLI bridge harness that encodes text to frame hex and decodes frame hex back to text without hardware.
+Run MVP-07: add local MeshCore companion channel-data frame builder/parser around bridge frames, without hardware/BLE yet.
