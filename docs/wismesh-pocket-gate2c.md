@@ -435,4 +435,66 @@ Verified second live result:
 - `parse_error_count`: `0`
 - `reconnect_count`: `0`
 
-This proves the daemon can persist event/state files across runs and avoid restart message ID reuse under the current two-Pocket desk test conditions. Reconnect paths are implemented and covered structurally, but unplug/replug recovery has not yet been live-tested.
+This proves the daemon can persist event/state files across runs and avoid restart message ID reuse under the current two-Pocket desk test conditions.
+
+## Gate 2H: live unplug/replug reconnect test
+
+Live physical mapping confirmed that the screen ID `D0521521` corresponds to `pocket2` / `COM8`. During the reconnect test, Eric unplugged that device, waited, and plugged it back in.
+
+Reconnect-window command:
+
+```powershell
+python tools/meshcore_bridge_daemon.py \
+  --port pocket1=COM5 \
+  --port pocket2=COM8 \
+  --duration-seconds 180 \
+  --reconnect-interval-seconds 3 \
+  --event-log .hermes\\runtime\\gate2h-reconnect-events.jsonl \
+  --state-file .hermes\\runtime\\gate2h-reconnect-state.json \
+  --open-real-ports
+```
+
+Verified reconnect event summary:
+
+- JSONL event lines: `17`
+- event kinds:
+  - `daemon_plan`: `1`
+  - `port_opened`: `3`
+  - `serial_read_error`: `1`
+  - `port_closed`: `3`
+  - `port_open_failed`: `8`
+  - `state_saved`: `1`
+- `COM8` opened at start.
+- unplug produced `serial_read_error` on `COM8`:
+  - `ClearCommError failed (PermissionError(13, 'The device does not recognize the command.', None, 22))`
+- daemon closed only `pocket2` / `COM8` with reason `read_error`.
+- while unplugged, daemon emitted eight `port_open_failed` events for `COM8` with `FileNotFoundError(2, 'The system cannot find the file specified.', None, 2)`.
+- after replug, daemon emitted `port_opened` for `pocket2` / `COM8` at monotonic timestamp `397282.609`.
+- final summary reported `reconnect_count`: `8`, `parse_error_count`: `0`.
+
+Post-reconnect delivery smoke:
+
+```powershell
+python tools/meshcore_bridge_daemon.py \
+  --port pocket1=COM5 \
+  --port pocket2=COM8 \
+  --inject-text pocket1:'gate2h post reconnect delivery' \
+  --duration-seconds 6 \
+  --reconnect-interval-seconds 3 \
+  --event-log .hermes\\runtime\\gate2h-post-reconnect-events.jsonl \
+  --state-file .hermes\\runtime\\gate2h-reconnect-state.json \
+  --open-real-ports
+```
+
+Verified post-reconnect delivery:
+
+- `state_loaded`: `true`
+- `message_id_start`: `64573`
+- `delivered_count`: `1`
+- `parse_error_count`: `0`
+- `reconnect_count`: `0`
+- delivered text on `pocket2`: `gate2h post reconnect delivery`
+- delivered message ID: `64573`
+- final state saved `next_message_id`: `64574`
+
+This proves live unplug/replug recovery for the current two-Pocket desk test: the daemon detected loss of `COM8`, closed only the affected port, retried while absent, reopened it after replug, and subsequently delivered a fresh MeshCore message over the recovered port.
