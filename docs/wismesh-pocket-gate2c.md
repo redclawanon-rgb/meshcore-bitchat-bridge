@@ -133,4 +133,25 @@ Stop before real serial access if:
 
 The preferred hardware target is now the three WisMesh Pocket units. Eric connected one Pocket to the Windows home desktop and reported it appears as `COM5`: `USB Serial Device (COM5)` with PNP ID prefix `USB\\VID_239A&PID_8029`, matching the RAK4631/nRF52840 USB identity observed in MeshCore upstream. `COM3` is Intel AMT SOL and should not be used; `COM4` is CH340 and is probably unrelated unless Eric identifies another attached serial board.
 
-Gate 2C can continue from the Windows desktop using `COM5`, starting with the dry-run/no-open command. A guarded real-port command should still require explicit approval for `COM5` after the dry-run succeeds and the local Python environment is ready.
+Gate 2C can continue from the Windows desktop using `COM5`. The dry-run/no-open command has succeeded over SSH using Python 3.11 installed at `C:\\Users\\station1\\AppData\\Local\\Programs\\Python\\Python311\\python.exe`:
+
+```powershell
+python tools/bridge_serial.py --port COM5 'wismesh pocket serial smoke'
+```
+
+Verified dry-run output included:
+
+- `mode`: `dry-run-no-port-opened`
+- `port`: `COM5`
+- `baud`: `115200`
+- `packet_count`: `1`
+- `text_bytes`: `27`
+- `serial_len`: `57`
+
+The repo is cloned on the Windows desktop at `C:\\Users\\station1\\meshcore-bitchat-bridge` and was up to date at `main...origin/main` when the dry-run passed.
+
+Next step is a guarded real-port command, which writes the encoded companion command to `COM5`. Require explicit Eric approval for this exact command before running:
+
+```powershell
+python tools/bridge_serial.py --port COM5 --open-real-port 'wismesh pocket serial smoke'
+```
