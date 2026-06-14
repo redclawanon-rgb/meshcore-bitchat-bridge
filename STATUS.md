@@ -2,7 +2,7 @@
 
 ## Current state
 
-Local-first development is underway. Bridge frame v0 is locked, local codec is implemented, message-level UTF-8 text fragmentation/reassembly helpers are implemented, a local CLI harness can encode/decode frames without hardware, MeshCore companion channel-data command/notification wrappers are implemented locally, a no-hardware two-node simulator proves end-to-end text exchange over the local stack, a simulator demo CLI prints deterministic A ↔ B exchange summaries, a transport-neutral companion datagram seam has a fake transport harness, a no-hardware serial adapter scaffold/dry-run CLI emits exact MeshCore serial packet bytes, the serial companion datagram transport is exercised through the transport-neutral bridge path with fake streams only, and a no-hardware orchestration smoke replays serial dry-run TX packet bytes through the simulator/fake-stream receiver path.
+Local-first development is underway. Bridge frame v0 is locked, local codec is implemented, message-level UTF-8 text fragmentation/reassembly helpers are implemented, a local CLI harness can encode/decode frames without hardware, MeshCore companion channel-data command/notification wrappers are implemented locally, a no-hardware two-node simulator proves end-to-end text exchange over the local stack, a simulator demo CLI prints deterministic A ↔ B exchange summaries, a transport-neutral companion datagram seam has a fake transport harness, a no-hardware serial adapter scaffold/dry-run CLI emits exact MeshCore serial packet bytes, the serial companion datagram transport is exercised through the transport-neutral bridge path with fake streams only, a no-hardware orchestration smoke replays serial dry-run TX packet bytes through the simulator/fake-stream receiver path, and the bitchat-side public-text seam has been inspected/designed as a semantic text-only carrier boundary without stock compatibility claims.
 
 ## Verified
 
@@ -36,6 +36,9 @@ Local-first development is underway. Bridge frame v0 is locked, local codec is i
 - Serial dry-run replay helper implemented via `unwrap_serial_tx_packet`, proving dry-run TX bytes can be validated/extracted without opening a port.
 - MVP-15 no-hardware orchestration smoke test proves text -> serial dry-run TX packet bytes -> extracted companion command -> simulated MeshCore notification -> fake serial stream -> receiver inbox.
 - Gated hardware smoke checklist drafted at `HARDWARE_SMOKE.md`; real serial access remains behind explicit Eric invocation and `--open-real-port`/`open_real_port=True`.
+- Public bitchat repository inspected from GitHub `main` for app-level transport, BLE public-message, packet, message type, and inbound public-message seams.
+- `BITCHAT_SEAM.md` documents the MVP bitchat-side boundary: decoded bridge text <-> future semantic public-text carrier, with no stock compatibility claim.
+- Decision `D005` added: semantic text-only bitchat-side MVP seam; do not forge stock `BitchatPacket` bytes for MVP.
 - Verification commands passed:
 
 ```text
@@ -56,15 +59,15 @@ Eric approved continuing local implementation to the project's logical MVP concl
 
 ## Current milestone
 
-MVP-15 complete: no-hardware serial dry-run orchestration smoke ties dry-run TX packet output to the simulator/fake-stream receiver path while keeping real serial access gated.
+MVP-16 complete: inspected public bitchat source and documented a text-only semantic adapter boundary for decoded bridge text <-> future bitchat-like carrier, explicitly avoiding stock compatibility claims.
 
 ## Next recommended loop
 
-MVP-16: inspect/design the bitchat-side transport seam and define the narrow local adapter boundary needed to connect decoded bridge text to a future bitchat carrier without claiming stock compatibility.
+MVP-17: implement the fake bitchat-side text carrier seam locally (`BitchatTextCarrier`/`FakeBitchatTextCarrier`) and test decoded `DeliveredText` handoff plus fake carrier-originated text through the existing MeshCore transport-neutral path.
 
 ## Blockers
 
 - Hardware availability not confirmed.
 - Target boards not chosen.
 - GitHub remote not created.
-- bitchat transport seam not inspected yet.
+- Real stock bitchat integration remains unscoped and unclaimed; future work needs version-pinned upstream API/conformance decisions.

@@ -24,8 +24,15 @@ Decision: Use a transport-neutral companion-datagram seam, implement serial firs
 
 Rationale: The local simulator already proves command/notification bytes. Serial is the lowest-friction first hardware path from a Linux/USB environment and avoids BLE scan/pairing/MTU issues during initial bring-up. BLE remains important for later mobile/bitchat-adjacent integration.
 
+## D005 — bitchat-side MVP seam
+
+Decision: Keep the bitchat-side MVP adapter semantic and text-only: decoded bridge `DeliveredText` enters a future fake/real `BitchatTextCarrier`, and carrier-originated public text exits back into bridge-frame fragmentation. Do not forge stock `BitchatPacket` bytes or claim stock bitchat/BLE compatibility in this repository's MVP.
+
+Rationale: Public bitchat source shows an app-level `Transport` protocol and BLE implementation that construct/sign/encode public `BitchatPacket` values internally before CoreBluetooth writes, then deliver inbound public text as typed transport/delegate events after packet validation. A local semantic seam lets this bridge prove the MeshCore/text handoff without taking ownership of bitchat signatures, Noise sessions, peer identity, BLE fragmentation, app lifecycle, or interoperability claims.
+
 ## Pending decisions
 
 - Test hardware: which MeshCore-supported boards.
 - MVP security: plaintext lab-only vs bridge-level test encryption.
 - Long-term app namespace: register a `data_type` instead of using development `0xFFFF`.
+- Whether any later stock-compatible bitchat integration should embed/wrap upstream code, target a version-pinned API, or remain a separate bridge mode.
