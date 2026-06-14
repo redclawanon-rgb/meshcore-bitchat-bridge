@@ -89,6 +89,7 @@ Developer regression fixture:
 - See `docs/no-hardware-smoke-regression.md` for the short regression note. Do not automate fixture refreshes with cron, nudge loops, or autoloop behavior.
 - See `docs/pre-hardware-readiness.md` for the local operator handoff that maps these demos, the stable fixture checks, and the gated `HARDWARE_SMOKE.md` checklist before any future hardware smoke.
 - See `docs/mvp-handoff-index.md` for the local MVP handoff/release-readiness index that cross-links protocol, adapter decisions, no-hardware demos, regression fixtures, pre-hardware readiness, blockers, and non-claims.
+- See `docs/gated-next-loops.md` for the post-MVP gate playbooks. No gated path is active unless Eric explicitly picks one.
 
 ### Safety and compatibility boundaries
 

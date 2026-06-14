@@ -52,6 +52,7 @@ Local-first development is underway. Bridge frame v0 is locked, local codec is i
 - Developer refresh/check note added at `docs/no-hardware-smoke-regression.md`, and README now points to the fixture, local check command, intentional refresh command, and no cron/nudge/autoloop boundary.
 - MVP-23 local pre-hardware readiness/operator handoff note added at `docs/pre-hardware-readiness.md`, mapping the no-hardware demo CLIs, smoke transcript fixture/check commands, and gated `HARDWARE_SMOKE.md` checklist into an exact sequence before any future hardware use.
 - MVP-24 local MVP handoff/release-readiness index added at `docs/mvp-handoff-index.md`, cross-linking `PROTOCOL.md`, adapter decisions, no-hardware demos, the smoke regression fixture/note, pre-hardware readiness, `HARDWARE_SMOKE.md`, current blockers, and non-claims without opening serial/BLE/hardware/network paths or adding automation.
+- Post-MVP gated next-loop playbook added at `docs/gated-next-loops.md`, mapping trigger/authorization, preflight checks, bounded steps, verification/evidence, stop/rollback criteria, and likely affected files for public repo prep, hardware smoke, real serial adapter smoke, BLE exploration, stock bitchat compatibility research, secrets handling, and production/security review. No gated path is active unless Eric explicitly picks one.
 - Verification commands passed:
 
 ```text
@@ -78,11 +79,11 @@ Eric approved continuing local implementation to the project's logical MVP concl
 
 ## Current milestone
 
-MVP-24 complete: `docs/mvp-handoff-index.md` now provides a local MVP handoff/release-readiness index for a future human operator, cross-linking the protocol, adapter decisions, no-hardware demos, smoke regression fixture/note, pre-hardware readiness, gated hardware checklist, current blockers, and non-claims. The boundary remains local-only: no serial/BLE/hardware/network/secrets/stock bitchat integration, and no cron/nudge/autoloop behavior.
+Post-MVP gate map complete: `docs/gated-next-loops.md` now provides local playbooks for future gated paths. The boundary remains local-only: no serial/BLE/hardware/network/secrets/stock bitchat integration, no public push/post, no production/security claims, and no cron/nudge/autoloop behavior. No gated path is active unless Eric explicitly picks one.
 
 ## Next recommended loop / gate
 
-Natural local-docs/code conclusion reached for the current no-hardware MVP handoff. The next step is a real gate, not another autonomous local loop: stop unless Eric explicitly approves one of the gated paths such as public push/post, hardware purchase/flashing/use, real serial/BLE access, secrets handling, production/security claims, or scoped stock bitchat compatibility work.
+Natural local-docs/code conclusion reached for the current no-hardware MVP handoff. The next step is a real gate, not another autonomous local loop: stop unless Eric explicitly approves one of the gated paths mapped in `docs/gated-next-loops.md`. Recommended order: public repo prep/release hygiene if desired, hardware smoke, real serial adapter smoke, BLE exploration, stock bitchat compatibility research, and production/security review last.
 
 ## Blockers
 

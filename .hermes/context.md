@@ -27,6 +27,7 @@ Build an MVP bridge that can carry bitchat-like text messages over MeshCore/LoRa
 - `docs/no-hardware-smoke-regression.md` — developer refresh/check note for the no-hardware smoke transcript fixture
 - `docs/pre-hardware-readiness.md` — local pre-hardware readiness/operator handoff mapping demos, smoke fixture checks, and `HARDWARE_SMOKE.md`
 - `docs/mvp-handoff-index.md` — local MVP handoff/release-readiness index cross-linking protocol, adapter decisions, no-hardware demos, regression fixture, readiness handoff, blockers, and non-claims
+- `docs/gated-next-loops.md` — local post-MVP gate playbook map; no gate is active unless Eric explicitly picks one
 - `README.md` — includes no-hardware demo CLI/smoke usage notes and safety/compatibility boundaries
 - `evidence/meshcore-payload-budget.md` — MeshCore payload budget evidence
 - `tools/bridge_frame_codec/` — local Python bridge-frame/message/MeshCore companion codec
@@ -101,4 +102,4 @@ Do not handle raw secrets in project files.
 
 ## Next action
 
-MVP-24 is complete: `docs/mvp-handoff-index.md` is the local MVP handoff/release-readiness index for a future human operator. Natural local-docs/code conclusion reached for the current no-hardware MVP handoff. Stop unless Eric explicitly approves a gated path such as public push/post, hardware purchase/flashing/use, real serial/BLE access, secrets handling, production/security claims, or scoped stock bitchat compatibility work.
+MVP-24 is complete and `docs/gated-next-loops.md` now maps the post-MVP gates into explicit playbooks. Natural local-docs/code conclusion reached for the current no-hardware MVP handoff. No gated path is active unless Eric explicitly picks one, such as public repo prep/push/post, hardware smoke, real serial adapter smoke, BLE exploration, secrets handling, scoped stock bitchat compatibility work, or production/security review.
