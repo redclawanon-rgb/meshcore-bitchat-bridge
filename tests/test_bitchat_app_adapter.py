@@ -28,6 +28,10 @@ class BitchatAppAdapterTests(unittest.TestCase):
         self.assertEqual(events[0].text, "hello from app adapter")
         self.assertEqual(events[0].sender_id, bytes.fromhex("0102030405060708"))
         self.assertEqual(events[0].timestamp_ms, 0x0000018F3D2A1B00)
+        self.assertEqual(events[0].nickname, None)
+        self.assertEqual(events[0].app_message_id, None)
+        self.assertEqual(events[0].platform, "fixture")
+        self.assertEqual(events[0].accepted, True)
         self.assertEqual(events[0].source, "fixture")
         self.assertEqual(duplicate_events, [])
 

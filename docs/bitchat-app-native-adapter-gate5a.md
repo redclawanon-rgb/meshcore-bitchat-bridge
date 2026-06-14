@@ -200,13 +200,37 @@ OK
 
 Gate 5B is still fixture-only. It does not open BLE, serial ports, mobile apps, hardware, or stock bitchat sessions.
 
+## Gate 5D result — platform-neutral app adapter API
+
+Gate 5D turned the Gate 5C insertion-point mapping into an exact platform-neutral API specification.
+
+Implemented doc:
+
+```text
+docs/APP_ADAPTER_API.md
+```
+
+The spec defines:
+
+- `VerifiedPublicTextEvent` for app/native accepted public text -> MeshCore bridge;
+- `publishBridgePublicText(...)` for MeshCore-delivered public text -> app/native public-send path;
+- required event fields: `text`, `sender_peer_id`, `timestamp_ms`, `packet_id_hex`, `platform`, `accepted=true`;
+- optional fields: `nickname`, `app_message_id`, `route`, `source`;
+- publish result fields and recommended error codes;
+- Android and iOS pseudo-interfaces;
+- local echo modes and non-claims.
+
+The local Python `BitchatAppPublicTextEvent` now includes backward-compatible optional metadata fields: `nickname`, `app_message_id`, `platform`, and `accepted`.
+
+Gate 5D is still local/spec-only. It does not modify Android/iOS app repos, open BLE, run mobile apps, or prove stock compatibility.
+
 ## Recommended next gate
 
-Gate 5C should map the app-adapter contract to Android/iOS insertion points as a design/spike gate:
+Gate 5E should choose one implementation direction:
 
-- Android receive/send/fragment/dedup/trust callback points;
-- iOS `BitFoundation`/BLE receive/fragment/trust callback points;
-- event ownership boundaries for BLE, Noise, route planning, trust UI, lifecycle, and persistence;
-- minimal app-side API shape that could feed `BitchatAppAdapter` without making the MeshCore bridge own mobile internals.
+- Android-first app adapter stub behind a disabled/debug flag;
+- iOS-first app adapter stub behind a disabled/debug flag;
+- Windows daemon service/scheduled-task wrapper before mobile work;
+- longer unattended daemon runtime.
 
-Live Android/iOS integration should wait until Gate 5C identifies the least-invasive insertion point.
+Live Android/iOS integration should still wait for explicit approval of app repo changes and BLE/mobile runtime work.

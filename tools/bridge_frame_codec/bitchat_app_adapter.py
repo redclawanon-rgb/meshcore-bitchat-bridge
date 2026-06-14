@@ -44,6 +44,10 @@ class BitchatAppPublicTextEvent:
     sender_id: bytes
     timestamp_ms: int
     route: tuple[bytes, ...] | None = None
+    nickname: str | None = None
+    app_message_id: str | None = None
+    platform: str = "fixture"
+    accepted: bool = True
     source: str = "fixture"
 
 

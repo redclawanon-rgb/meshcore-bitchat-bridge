@@ -84,6 +84,12 @@ Decision: Future live app work should use app-side semantic public-text adapter 
 
 Rationale: Gate 5C inspection found both apps already own BLE decode, fragment reassembly, announce trust, signature policy, public-message acceptance, dedup/sync, route/fragment send behavior, lifecycle, and UI persistence. The bridge should subscribe to verified semantic public text and publish bridge text through existing app send APIs rather than duplicating mobile internals.
 
+## D015 — Gate 5D platform-neutral app adapter API
+
+Decision: The future Android/iOS app adapter contract is a semantic public-text API, not a raw packet/BLE API. App-to-bridge events must be emitted only after app acceptance policy and must carry `text`, `sender_peer_id`, `timestamp_ms`, `packet_id_hex`, `platform`, and explicit `accepted=true`, with optional nickname/app-message/route/source metadata. Bridge-to-app publishing must enter the app's existing public-send path and return an accepted-for-send result that does not claim BLE/radio delivery.
+
+Rationale: Gate 5D makes the Gate 5C insertion-point map implementable without pushing MeshCore concerns into the mobile apps or app internals into the bridge. It also aligns the local Python fixture event with future Android/iOS metadata while preserving no-BLE/no-stock-compatibility boundaries.
+
 ## Pending decisions
 
 - Test hardware: which MeshCore-supported boards.
