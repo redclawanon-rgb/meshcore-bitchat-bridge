@@ -30,7 +30,8 @@ Build an MVP bridge that can carry bitchat-like text messages over MeshCore/LoRa
 - `docs/gated-next-loops.md` — local post-MVP gate playbook map; no gate is active unless Eric explicitly picks one
 - `docs/public-release-preflight.md` — Gate 1 public release hygiene checklist with readiness, exact pre-push commands, non-claim wording checklist, stop criteria, and publication record
 - `docs/hardware-inventory-preflight.md` — Gate 2A hardware inventory evidence; no candidate serial device visible and no real serial/BLE/hardware access attempted
-- `docs/rak4631-target-setup.md` — Gate 2B target setup notes for Eric's RAK19003 + RAK4631 with LoRa/BLE antennas and recommended MeshCore USB Serial Companion firmware path
+- `docs/rak4631-target-setup.md` — Gate 2B target setup notes for Eric's loose RAK19003 + RAK4631 assembly with LoRa/BLE antennas and recommended MeshCore USB Serial Companion firmware path
+- `docs/wismesh-pocket-gate2c.md` — active Gate 2C target notes for Eric's three RAKwireless WisMesh Pocket units; use one Pocket first and prefer MeshCore RAK4631 USB Companion before guarded real-port smoke
 - `README.md` — includes no-hardware demo CLI/smoke usage notes and safety/compatibility boundaries
 - `evidence/meshcore-payload-budget.md` — MeshCore payload budget evidence
 - `tools/bridge_frame_codec/` — local Python bridge-frame/message/MeshCore companion codec
@@ -104,4 +105,4 @@ Do not handle raw secrets in project files.
 
 ## Next action
 
-Gate 1 source-only public publication is complete at <https://github.com/redclawanon-rgb/meshcore-bitchat-bridge>. Gate 2A inventory found no candidate serial device on this host/session. Gate 2B target setup is recorded for Eric's RAK19003 base board + RAK4631 core board with LoRa/BLE antennas; MeshCore upstream supports RAK4631/19003 and the recommended first firmware path is RAK4631 USB Serial Companion. Next hardware step requires connecting the board to a host, identifying its serial path/installed firmware, and then deciding whether flashing or a guarded real-port smoke is appropriate.
+Gate 1 source-only public publication is complete at <https://github.com/redclawanon-rgb/meshcore-bitchat-bridge>. Active Gate 2C target is now Eric's three RAKwireless WisMesh Pocket units, documented in `docs/wismesh-pocket-gate2c.md`; use one Pocket first. MeshCore flasher config maps RAK WisBlock/WisMesh RAK4631 to `RAK_4631_companion_radio_usb...` assets; USB Companion is the preferred first firmware path. Latest no-open inventory found no visible candidate serial device on this host/session. Next hardware step: connect one Pocket to the target host, identify its exact serial path and installed firmware role, then approve the exact guarded real-port smoke command if appropriate.
