@@ -29,8 +29,11 @@ if (-not (Test-Path -LiteralPath $PythonExe -PathType Leaf)) {
     throw "Python executable not found: $PythonExe"
 }
 
-$pwsh = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source
-if (-not $pwsh) {
+$pwshCommand = Get-Command pwsh.exe -ErrorAction SilentlyContinue
+if ($pwshCommand) {
+    $pwsh = $pwshCommand.Source
+}
+else {
     $pwsh = (Get-Command powershell.exe -ErrorAction Stop).Source
 }
 
