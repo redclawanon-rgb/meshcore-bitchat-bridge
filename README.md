@@ -87,6 +87,7 @@ Developer regression fixture:
 - Check locally with `python3 -m unittest tests.test_no_hardware_smoke_cli -v` or the full `python3 -m unittest discover -s tests -v` suite.
 - Refresh intentionally with `python3 tools/no_hardware_smoke.py > tests/fixtures/no-hardware-smoke-stable.json`, then review the diff and rerun tests.
 - See `docs/no-hardware-smoke-regression.md` for the short regression note. Do not automate fixture refreshes with cron, nudge loops, or autoloop behavior.
+- See `docs/pre-hardware-readiness.md` for the local operator handoff that maps these demos, the stable fixture checks, and the gated `HARDWARE_SMOKE.md` checklist before any future hardware smoke.
 
 ### Safety and compatibility boundaries
 
