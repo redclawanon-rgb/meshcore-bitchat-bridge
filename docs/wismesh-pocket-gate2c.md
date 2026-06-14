@@ -150,7 +150,13 @@ Verified dry-run output included:
 
 The repo is cloned on the Windows desktop at `C:\\Users\\station1\\meshcore-bitchat-bridge` and was up to date at `main...origin/main` when the dry-run passed.
 
-Next step is a guarded real-port command, which writes the encoded companion command to `COM5`. Require explicit Eric approval for this exact command before running:
+Next step is **not** the MeshCore write yet. The first Pocket currently appears to run Meshtastic/Meshtastic-derived debug firmware. A read-only `COM5` probe at 115200 opened the port without writing and read 88 bytes of ASCII debug output, including:
+
+```text
+DEBUG | 18:16:13 1245 [Power] Battery: usbPower=0, isCharging=0, batMv=4180, batPct=99
+```
+
+That confirms the MeshCore companion write smoke would not be meaningful against the current firmware. Require explicit Eric approval before flashing one Pocket with MeshCore RAK4631 USB Companion firmware. The exact MeshCore real-port write command remains blocked until after that firmware step:
 
 ```powershell
 python tools/bridge_serial.py --port COM5 --open-real-port 'wismesh pocket serial smoke'

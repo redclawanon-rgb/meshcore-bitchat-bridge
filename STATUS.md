@@ -90,5 +90,6 @@ Gate 1 publication is complete for source-only repo creation/push. Gate 2A hardw
 
 - Active Gate 2C target is Eric's three RAKwireless WisMesh Pocket units; one Pocket is visible on Eric's Windows home desktop as `COM5` / `USB Serial Device (COM5)` / `USB\\VID_239A&PID_8029`.
 - `COM3` is Intel AMT SOL and should not be used; `COM4` is CH340 and likely unrelated unless Eric identifies another serial board.
-- Firmware actually installed on the WisMesh Pocket units is not confirmed yet; MeshCore RAK4631 USB Companion is the preferred first serial-smoke path.
+- Firmware actually installed on the first WisMesh Pocket appears to be Meshtastic or Meshtastic-derived debug firmware, not MeshCore USB Companion. A read-only `COM5` probe at 115200 opened the port without writing and read ASCII debug output like `[Power] Battery: usbPower=0, isCharging=0, batMv=4180, batPct=99`.
+- MeshCore real-port write smoke is blocked until one Pocket is flashed with MeshCore RAK4631 USB Companion firmware, or until a separate Meshtastic-specific adapter path is intentionally implemented.
 - Real stock bitchat integration remains unscoped and unclaimed; future work needs version-pinned upstream API/conformance decisions.
