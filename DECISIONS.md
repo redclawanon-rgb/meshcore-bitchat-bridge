@@ -90,6 +90,12 @@ Decision: The future Android/iOS app adapter contract is a semantic public-text 
 
 Rationale: Gate 5D makes the Gate 5C insertion-point map implementable without pushing MeshCore concerns into the mobile apps or app internals into the bridge. It also aligns the local Python fixture event with future Android/iOS metadata while preserving no-BLE/no-stock-compatibility boundaries.
 
+## D016 — Gate 5E iOS-first disabled/debug app adapter stub
+
+Decision: The first iOS app-side implementation should be a disabled/debug-only Swift contract/stub, not a live BLEService integration. The local iOS checkout now has `DebugMeshBridgePublicTextAdapter` and focused tests on branch `gate5e-ios-adapter-stub`; it defaults disabled, emits no events, refuses outbound publish with `.adapterDisabled`, and only uses injected closures when explicitly enabled in tests.
+
+Rationale: This validates the Gate 5D contract shape inside iOS without taking ownership of BLE, Noise, signing, route planning, sync, UI persistence, or mobile lifecycle. It creates a safe insertion target for a future debug-only hook while avoiding a premature stock compatibility or radio-delivery claim.
+
 ## Pending decisions
 
 - Test hardware: which MeshCore-supported boards.
