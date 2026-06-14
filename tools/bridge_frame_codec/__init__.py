@@ -25,6 +25,7 @@ from .meshcore_companion import (
     parse_channel_data_recv,
 )
 from .serial_adapter import (
+    InMemorySerialByteStream,
     MAX_SERIAL_PAYLOAD,
     SERIAL_RX_START,
     SERIAL_TX_START,
@@ -69,6 +70,7 @@ __all__ = [
     "SimulatedMeshCoreLink",
     "CompanionDatagramTransport",
     "FakeCompanionDatagramTransport",
+    "InMemorySerialByteStream",
     "MAX_SERIAL_PAYLOAD",
     "SERIAL_RX_START",
     "SERIAL_TX_START",

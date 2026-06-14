@@ -36,6 +36,37 @@ class SerialByteStream(Protocol):
         ...
 
 
+@dataclass(slots=True)
+class InMemorySerialByteStream:
+    """Serial-like byte stream for fake-stream transport tests/dry runs.
+
+    It records all bytes written by the transport and allows tests to inject
+    synthetic incoming serial bytes without opening or probing any real port.
+    """
+
+    incoming: bytearray = field(default_factory=bytearray)
+    writes: list[bytes] = field(default_factory=list)
+
+    def write(self, data: bytes) -> int:
+        self.writes.append(data)
+        return len(data)
+
+    def read(self, size: int = 1) -> bytes:
+        if not self.incoming:
+            return b""
+        chunk = bytes(self.incoming[:size])
+        del self.incoming[:size]
+        return chunk
+
+    def inject(self, data: bytes) -> None:
+        """Queue raw incoming serial bytes for future reads."""
+        self.incoming.extend(data)
+
+    def inject_notification(self, notification: bytes) -> None:
+        """Queue one companion notification wrapped as a serial RX packet."""
+        self.inject(wrap_serial_rx_packet(notification))
+
+
 def wrap_serial_tx_packet(command: bytes) -> bytes:
     """Wrap companion command bytes for serial write to a MeshCore device."""
     if len(command) > MAX_SERIAL_PAYLOAD:

@@ -2,7 +2,12 @@ import unittest
 
 from tools.bridge_frame_codec import MAX_FRAME_PAYLOAD
 from tools.bridge_frame_codec.meshcore_companion import CMD_SEND_CHANNEL_DATA
+from tools.bridge_frame_codec.serial_adapter import (
+    InMemorySerialByteStream,
+    SerialCompanionDatagramTransport,
+)
 from tools.bridge_frame_codec.sim import SimulatedBridgeNode
+from tools.bridge_frame_codec.sim import SimulatedMeshCoreLink
 from tools.bridge_frame_codec.transport import (
     FakeCompanionDatagramTransport,
     drain_transport_to_node,
@@ -46,6 +51,27 @@ class BridgeTransportTests(unittest.TestCase):
 
         self.assertEqual(drain_transport_to_node(transport, bob), [])
         self.assertEqual(bob.inbox, [])
+
+    def test_serial_transport_carries_multi_frame_message_via_fake_stream(self):
+        alice = SimulatedBridgeNode(bridge_id=1)
+        bob = SimulatedBridgeNode(bridge_id=2)
+        stream = InMemorySerialByteStream()
+        transport = SerialCompanionDatagramTransport(byte_stream=stream)
+        link = SimulatedMeshCoreLink()
+        text = "serial transport neutral path " + ("z" * (MAX_FRAME_PAYLOAD + 7))
+
+        count = send_text_over_transport(alice, transport, text)
+        for packet in stream.writes:
+            command = packet[3:]
+            stream.inject_notification(link.command_to_notification(command))
+        delivered = drain_transport_to_node(transport, bob)
+
+        self.assertGreater(count, 1)
+        self.assertEqual(len(stream.writes), count)
+        self.assertTrue(all(packet.startswith(b"\x3c") for packet in stream.writes))
+        self.assertEqual([item.text for item in delivered], [text])
+        self.assertEqual([item.text for item in bob.inbox], [text])
+        self.assertIsNone(transport.recv_channel_data_notification())
 
 
 if __name__ == "__main__":
