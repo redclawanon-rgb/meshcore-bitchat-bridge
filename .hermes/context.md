@@ -20,12 +20,14 @@ Build an MVP bridge that can carry bitchat-like text messages over MeshCore/LoRa
 - `evidence/meshcore-payload-budget.md` — MeshCore payload budget evidence
 - `tools/bridge_frame_codec/` — local Python bridge-frame/message/MeshCore companion codec
 - `tools/bridge_cli.py` — local encode/decode CLI harness
+- `tools/bridge_sim.py` — no-hardware simulator demo CLI
 - `tests/test_bridge_frame_codec.py` — frame codec/unit tests
 - `tests/test_bridge_message.py` — text message helper tests
 - `tests/test_bridge_cli.py` — local CLI tests
 - `tests/test_meshcore_companion.py` — MeshCore companion wrapper tests
 - `tools/bridge_frame_codec/sim.py` — no-hardware two-node simulator
 - `tests/test_bridge_sim.py` — simulator end-to-end tests
+- `tests/test_bridge_sim_cli.py` — simulator CLI tests
 - `tests/vectors/bridge-frame-v0.json` — canonical v0 test vector
 
 ## Current MVP scope
@@ -67,7 +69,7 @@ Use MeshCore companion channel data datagrams first:
 python3 -m unittest discover -s tests -v
 ```
 
-Latest verified result: 31 tests passed.
+Latest verified result: 33 tests passed; simulator CLI smoke delivered one alice → bob message.
 
 ## Approval boundaries
 
@@ -77,4 +79,4 @@ Do not handle raw secrets in project files.
 
 ## Next action
 
-Run MVP-09: add a no-hardware simulator demo CLI that prints deterministic A ↔ B text exchange summaries and frame/command counts, then proceed to the serial/BLE/hardware path decision.
+Run MVP-10: serial/BLE/hardware path decision and adapter seam design. Inspect MeshCore companion connection options/examples, pick the first live adapter path, and document an adapter interface that consumes/produces the same command/notification bytes already proven by the simulator.

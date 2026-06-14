@@ -2,7 +2,7 @@
 
 ## Current state
 
-Local-first development is underway. Bridge frame v0 is locked, local codec is implemented, message-level UTF-8 text fragmentation/reassembly helpers are implemented, a local CLI harness can encode/decode frames without hardware, MeshCore companion channel-data command/notification wrappers are implemented locally, and a no-hardware two-node simulator now proves end-to-end text exchange over the local stack.
+Local-first development is underway. Bridge frame v0 is locked, local codec is implemented, message-level UTF-8 text fragmentation/reassembly helpers are implemented, a local CLI harness can encode/decode frames without hardware, MeshCore companion channel-data command/notification wrappers are implemented locally, a no-hardware two-node simulator proves end-to-end text exchange over the local stack, and a simulator demo CLI prints deterministic A ↔ B exchange summaries.
 
 ## Verified
 
@@ -20,12 +20,17 @@ Local-first development is underway. Bridge frame v0 is locked, local codec is i
 - Local CLI implemented at `tools/bridge_cli.py`.
 - MeshCore companion wrapper implemented at `tools/bridge_frame_codec/meshcore_companion.py`.
 - No-hardware two-node simulator implemented at `tools/bridge_frame_codec/sim.py`.
+- Simulator demo CLI implemented at `tools/bridge_sim.py`.
 - Simulator tests implemented at `tests/test_bridge_sim.py`.
-- Verification command passed:
+- Simulator CLI tests implemented at `tests/test_bridge_sim_cli.py`.
+- Verification commands passed:
 
 ```text
+python3 tools/bridge_sim.py --one-way --alice-text 'smoke test over simulated MeshCore'
+# delivered one alice -> bob simulated message
+
 python3 -m unittest discover -s tests -v
-Ran 31 tests in 0.007s
+Ran 33 tests in 0.011s
 OK
 ```
 
@@ -35,19 +40,16 @@ Eric approved continuing local implementation to the project's logical MVP concl
 
 ## Current milestone
 
-MVP-08 complete: simulated end-to-end node harness.
+MVP-09 complete: no-hardware simulator demo CLI.
 
 ## Next recommended loop
 
-MVP-09: add a small demo CLI for the simulator:
+MVP-10: serial/BLE/hardware path decision and adapter seam design:
 
-- create `tools/bridge_sim.py`;
-- allow A → B, B → A, and long-message demo runs;
-- print frame/command counts and delivered text summaries;
-- keep it no-hardware and deterministic;
-- verify with CLI tests or a smoke command.
-
-After that, continue toward MVP-10: serial/BLE/hardware path decision and adapter seam design.
+- inspect MeshCore companion protocol connection options and existing client examples;
+- decide whether first live adapter should be serial, BLE, or both;
+- document the adapter interface that consumes/produces the same command/notification bytes the simulator already uses;
+- keep hardware purchase/flashing gated until Eric approves hardware.
 
 ## Blockers
 
