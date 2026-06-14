@@ -8,19 +8,23 @@ This gate did modify the local iOS checkout at `/tmp/bitchat-ios`, but it did **
 
 The iOS upstream remote is `https://github.com/permissionlesstech/bitchat.git`, so the app change was preserved on a local branch and was not pushed to upstream main.
 
-## iOS local branch and commit
+## iOS local branch and commits
 
 ```text
 repo: /tmp/bitchat-ios
 branch: gate5e-ios-adapter-stub
-commit: dfdcd6f Add disabled MeshCore bridge adapter stub
+dfdcd6f Add disabled MeshCore bridge adapter stub
+72fdf18 Add debug MeshCore bridge hooks
 ```
 
 Changed iOS files:
 
 ```text
 bitchat/Services/Bridge/MeshBridgePublicTextAdapter.swift
+bitchat/Services/Bridge/BLEService+MeshBridgeDebugPublish.swift
+bitchat/Services/BLE/BLEPublicMessageHandler.swift
 bitchatTests/Services/MeshBridgePublicTextAdapterTests.swift
+bitchatTests/Services/BLEPublicMessageHandlerTests.swift
 ```
 
 ## What the stub adds
@@ -56,7 +60,34 @@ Enabled debug behavior is dependency-injected for tests only:
 - bridge-publication can delegate to an injected closure;
 - if enabled without a closure, publication returns `.transportUnavailable` rather than claiming delivery.
 
-## Tests added
+## Debug inbound and outbound hooks added
+
+Commit `72fdf18` adds the two requested debug hooks while keeping runtime behavior disabled unless explicitly wired later:
+
+1. Inbound app -> bridge hook:
+
+```text
+BLEPublicMessageHandlerEnvironment.recordBridgeAcceptedPublicText
+```
+
+- Defaults to no-op.
+- Called only after `BLEPublicMessageHandler` accepts the public message, resolves the verified display name, tracks sync when appropriate, decodes UTF-8, computes the packet ID, and resolves self-replay message ID.
+- Emits `MeshBridgeVerifiedPublicTextEvent` with `text`, `senderPeerID`, `timestampMs`, `packetIDHex`, `nickname`, and optional `appMessageID`.
+- Existing `BLEService.makePublicMessageHandlerEnvironment()` does not wire it, so live app behavior remains unchanged.
+
+2. Outbound bridge -> app wrapper:
+
+```text
+BLEService.debugPublishBridgePublicText(...)
+```
+
+- Not called or wired by default.
+- Checks `InputValidator.Limits.maxMessageLength`.
+- Constructs deterministic app message ID `meshbridge-<fromBridgeID>-<messageID>`.
+- Calls existing `BLEService.sendMessage(..., to: nil, messageID:, timestamp:)` when explicitly invoked.
+- Returns `acceptedForSend=true` only for acceptance into the app send pipeline; it does not claim BLE/radio delivery.
+
+## Tests added/updated
 
 `MeshBridgePublicTextAdapterTests.swift` covers:
 
@@ -64,6 +95,11 @@ Enabled debug behavior is dependency-injected for tests only:
 - disabled adapter emits no inbound event and refuses outbound publish;
 - enabled debug adapter emits accepted events only;
 - enabled debug publish delegates to an injected app-send closure and returns its result.
+
+`BLEPublicMessageHandlerTests.swift` now also verifies:
+
+- accepted verified public messages produce a bridge event through `recordBridgeAcceptedPublicText`;
+- rejected/self/stale cases leave bridge events empty via the existing no-side-effects helper.
 
 ## Verification run
 
@@ -74,19 +110,23 @@ xcodebuild not available on this host
 exit_code=127
 ```
 
-Static checks on the new Swift files passed:
+Static checks on the modified Swift files passed:
 
 ```text
 bitchat/Services/Bridge/MeshBridgePublicTextAdapter.swift: lines=172 bytes=5982 braces={:16 }:16 parens=(:18 ):18
+bitchat/Services/Bridge/BLEService+MeshBridgeDebugPublish.swift: lines=48 bytes=1629 braces={:4 }:4 parens=(:10 ):10
+bitchat/Services/BLE/BLEPublicMessageHandler.swift: lines=119 bytes=5199 braces={:10 }:10 parens=(:58 ):58
 bitchatTests/Services/MeshBridgePublicTextAdapterTests.swift: lines=123 bytes=4389 braces={:9 }:9 parens=(:55 ):55
-static_new_swift_checks=ok
+bitchatTests/Services/BLEPublicMessageHandlerTests.swift: lines=264 bytes=10755 braces={:26 }:26 parens=(:146 ):146
+static_modified_swift_checks=ok
 ```
 
 Local iOS git state after commit:
 
 ```text
 ## gate5e-ios-adapter-stub
-dfdcd6f (HEAD -> gate5e-ios-adapter-stub) Add disabled MeshCore bridge adapter stub
+72fdf18 (HEAD -> gate5e-ios-adapter-stub) Add debug MeshCore bridge hooks
+dfdcd6f Add disabled MeshCore bridge adapter stub
 ```
 
 ## Non-claims
@@ -97,7 +137,7 @@ Gate 5E does not prove:
 - app runtime integration;
 - BLE discovery/advertising;
 - CoreBluetooth packet send/receive;
-- `BLEService` wiring;
+- live `BLEService` adapter wiring;
 - MeshCore bridge runtime connection to iOS;
 - stock bitchat interoperability;
 - mobile background behavior;
@@ -111,6 +151,6 @@ It only adds a disabled/debug Swift adapter contract/stub and local tests in the
 Recommended next gates:
 
 1. Run the iOS tests on a macOS/Xcode host and fix any compile issues.
-2. Add a debug-only integration hook at `BLEPublicMessageHandlerEnvironment.deliverPublicMessage(...)` that remains disabled by default.
-3. Add a debug-only outbound wrapper around `BLEService.sendMessage(...)`, still disabled by default.
+2. Add an explicit disabled debug flag/config owner for the iOS adapter wiring path.
+3. Connect the debug adapter to a real bridge transport process only after a macOS/Xcode pass and explicit live app/BLE approval.
 4. Pause mobile work and harden the Windows daemon/service wrapper first.

@@ -71,7 +71,7 @@ Local-first development is underway. Bridge frame v0 is locked, local codec is i
 - Gate 5B tests added at `tests/test_bitchat_app_adapter_pump.py`; Decision `D013` added: adapter-backed pump integration is local fixture-only and does not open BLE, serial ports, mobile apps, hardware, or stock bitchat sessions.
 - Gate 5C Android/iOS insertion-point mapping added at `docs/bitchat-app-insertion-points-gate5c.md`; Decision `D014` added: future live app work should subscribe to verified semantic public-text events after app acceptance policy and publish bridge text through existing app public-send APIs, not raw BLE/BinaryProtocol hooks.
 - Gate 5D platform-neutral app adapter API spec added at `docs/APP_ADAPTER_API.md`; Decision `D015` added: Android/iOS adapters should emit accepted semantic `VerifiedPublicTextEvent` records and publish MeshCore text through existing app public-send paths. `BitchatAppPublicTextEvent` now includes backward-compatible optional `nickname`, `app_message_id`, `platform`, and `accepted` fields.
-- Gate 5E iOS-first disabled/debug app adapter stub added in local iOS checkout `/tmp/bitchat-ios` on branch `gate5e-ios-adapter-stub`, commit `dfdcd6f`; bridge record added at `docs/ios-app-adapter-stub-gate5e.md`; Decision `D016` added. The iOS stub is not wired into BLEService and defaults disabled/no-op.
+- Gate 5E iOS-first disabled/debug app adapter stub added in local iOS checkout `/tmp/bitchat-ios` on branch `gate5e-ios-adapter-stub`, commits `dfdcd6f` and `72fdf18`; bridge record added at `docs/ios-app-adapter-stub-gate5e.md`; Decisions `D016` and `D017` added. The iOS stub is not connected to any live bridge transport; inbound hook defaults no-op and outbound wrapper is only active if explicitly called.
 - Verification commands passed:
 
 ```text
@@ -117,16 +117,20 @@ xcodebuild not available on this host
 exit_code=127
 
 python - <<'PY'
-# static balance/shape checks for new Swift files
+# static balance/shape checks for modified Swift files
 PY
-static_new_swift_checks=ok
+static_modified_swift_checks=ok
 
-cd /tmp/bitchat-ios && git status --short --branch && git log -1 --oneline --decorate
+cd /tmp/bitchat-ios && git status --short --branch && git log -2 --oneline --decorate
 ## gate5e-ios-adapter-stub
-dfdcd6f (HEAD -> gate5e-ios-adapter-stub) Add disabled MeshCore bridge adapter stub
+72fdf18 (HEAD -> gate5e-ios-adapter-stub) Add debug MeshCore bridge hooks
+dfdcd6f Add disabled MeshCore bridge adapter stub
 
 python -m pytest -q
 91 passed in 0.65s
+
+python -m pytest -q
+91 passed in 0.67s
 ```
 
 ## Approval note
@@ -139,7 +143,7 @@ Post-MVP gate map complete, Gate 1 local release hygiene preflight is documented
 
 ## Next recommended loop / gate
 
-Gate 1 publication is complete for source-only repo creation/push. Gate 2A hardware inventory preflight is recorded in `docs/hardware-inventory-preflight.md`: no candidate `/dev/ttyUSB*`, `/dev/ttyACM*`, or `/dev/serial/...` device was visible on this host/session, `lsusb` is not installed, no real serial/BLE/hardware access was attempted, no-hardware smoke passed, and 59 tests passed. Gate 2B target setup is recorded in `docs/rak4631-target-setup.md` for the loose RAK19003 + RAK4631 assembly. Gates 2C/2D/2E are complete for two MeshCore-flashed WisMesh Pockets on Eric's Windows home desktop: `pocket-1` is `COM5` / serial `BAE292D6B7431B72`; `pocket-2` is `COM8` / serial `99EF9E1DC9D17560`; the 20-message stability loop delivered 20/20 alternating messages with no duplicates or parse errors. Gates 2F/2G/2H are complete for the MeshCore-side daemon: named real-port opening is gated by `--open-real-ports`, JSONL event logging and state persistence are implemented, and live unplug/replug recovery for `pocket2` / `COM8` was proven. Gate 4 scoped bitchat adapter research plus Gate 4A/4B/4C/4D/4E conformance fixtures are complete, Gates 5A/5B app-adapter seam/pump integration are complete, Gate 5C Android/iOS insertion-point mapping is complete, Gate 5D platform-neutral app adapter API spec is complete, and Gate 5E iOS-first disabled/debug stub is complete in the local iOS checkout. Recommended next gated choices: run iOS tests on macOS/Xcode, add a debug-only iOS inbound hook, add a debug-only iOS outbound wrapper, Windows service/scheduled-task wrapper, longer unattended daemon runtime, third Pocket flashing, live BLE/app integration, production/security review, tags/releases, or public announcements.
+Gate 1 publication is complete for source-only repo creation/push. Gate 2A hardware inventory preflight is recorded in `docs/hardware-inventory-preflight.md`: no candidate `/dev/ttyUSB*`, `/dev/ttyACM*`, or `/dev/serial/...` device was visible on this host/session, `lsusb` is not installed, no real serial/BLE/hardware access was attempted, no-hardware smoke passed, and 59 tests passed. Gate 2B target setup is recorded in `docs/rak4631-target-setup.md` for the loose RAK19003 + RAK4631 assembly. Gates 2C/2D/2E are complete for two MeshCore-flashed WisMesh Pockets on Eric's Windows home desktop: `pocket-1` is `COM5` / serial `BAE292D6B7431B72`; `pocket-2` is `COM8` / serial `99EF9E1DC9D17560`; the 20-message stability loop delivered 20/20 alternating messages with no duplicates or parse errors. Gates 2F/2G/2H are complete for the MeshCore-side daemon: named real-port opening is gated by `--open-real-ports`, JSONL event logging and state persistence are implemented, and live unplug/replug recovery for `pocket2` / `COM8` was proven. Gate 4 scoped bitchat adapter research plus Gate 4A/4B/4C/4D/4E conformance fixtures are complete, Gates 5A/5B app-adapter seam/pump integration are complete, Gate 5C Android/iOS insertion-point mapping is complete, Gate 5D platform-neutral app adapter API spec is complete, and Gate 5E iOS-first disabled/debug stub plus debug inbound/outbound hooks are complete in the local iOS checkout. Recommended next gated choices: run iOS tests on macOS/Xcode, add explicit disabled config/flag owner for iOS adapter wiring, Windows service/scheduled-task wrapper, longer unattended daemon runtime, third Pocket flashing, live BLE/app integration, production/security review, tags/releases, or public announcements.
 
 ## Blockers
 

@@ -96,6 +96,12 @@ Decision: The first iOS app-side implementation should be a disabled/debug-only 
 
 Rationale: This validates the Gate 5D contract shape inside iOS without taking ownership of BLE, Noise, signing, route planning, sync, UI persistence, or mobile lifecycle. It creates a safe insertion target for a future debug-only hook while avoiding a premature stock compatibility or radio-delivery claim.
 
+## D017 — Gate 5E iOS debug inbound/outbound hooks
+
+Decision: The iOS adapter path may expose two debug-only hook points before any live bridge transport is connected: `BLEPublicMessageHandlerEnvironment.recordBridgeAcceptedPublicText` for post-acceptance app-to-bridge events, and `BLEService.debugPublishBridgePublicText(...)` for bridge-to-app acceptance into the existing public send path. Both remain unwired by default; the inbound hook defaults no-op and the outbound wrapper is only active if explicitly called.
+
+Rationale: This completes the requested iOS hook seams while preserving app ownership of BLE, packet construction/signing, sync tracking, trust, UI, and persistence. It gives a concrete future wiring point without silently enabling a live bridge, making radio-delivery claims, or bypassing iOS acceptance policy.
+
 ## Pending decisions
 
 - Test hardware: which MeshCore-supported boards.
