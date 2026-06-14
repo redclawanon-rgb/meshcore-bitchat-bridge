@@ -6,6 +6,7 @@ from .bitchat_text import (
     BitchatTextCarrier,
     FakeBitchatTextCarrier,
 )
+from .bridge_pump import BridgePumpResult, pump_text_bridge_once
 from .bridge_frame import (
     BridgeFrame,
     BridgeFrameError,
@@ -54,6 +55,8 @@ __all__ = [
     "BitchatPublishedText",
     "BitchatTextCarrier",
     "FakeBitchatTextCarrier",
+    "BridgePumpResult",
+    "pump_text_bridge_once",
     "BridgeFrame",
     "BridgeFrameError",
     "MAGIC",

@@ -2,7 +2,7 @@
 
 ## Current state
 
-Local-first development is underway. Bridge frame v0 is locked, local codec is implemented, message-level UTF-8 text fragmentation/reassembly helpers are implemented, a local CLI harness can encode/decode frames without hardware, MeshCore companion channel-data command/notification wrappers are implemented locally, a no-hardware two-node simulator proves end-to-end text exchange over the local stack, a simulator demo CLI prints deterministic A ↔ B exchange summaries, a transport-neutral companion datagram seam has a fake transport harness, a no-hardware serial adapter scaffold/dry-run CLI emits exact MeshCore serial packet bytes, the serial companion datagram transport is exercised through the transport-neutral bridge path with fake streams only, a no-hardware orchestration smoke replays serial dry-run TX packet bytes through the simulator/fake-stream receiver path, the bitchat-side public-text seam has been inspected/designed as a semantic text-only carrier boundary without stock compatibility claims, and a fake in-memory `BitchatTextCarrier` now proves decoded bridge text handoff plus carrier-originated text forwarding through the existing MeshCore transport-neutral path.
+Local-first development is underway. Bridge frame v0 is locked, local codec is implemented, message-level UTF-8 text fragmentation/reassembly helpers are implemented, a local CLI harness can encode/decode frames without hardware, MeshCore companion channel-data command/notification wrappers are implemented locally, a no-hardware two-node simulator proves end-to-end text exchange over the local stack, a simulator demo CLI prints deterministic A ↔ B exchange summaries, a transport-neutral companion datagram seam has a fake transport harness, a no-hardware serial adapter scaffold/dry-run CLI emits exact MeshCore serial packet bytes, the serial companion datagram transport is exercised through the transport-neutral bridge path with fake streams only, a no-hardware orchestration smoke replays serial dry-run TX packet bytes through the simulator/fake-stream receiver path, the bitchat-side public-text seam has been inspected/designed as a semantic text-only carrier boundary without stock compatibility claims, a fake in-memory `BitchatTextCarrier` proves decoded bridge text handoff plus carrier-originated text forwarding through the existing MeshCore transport-neutral path, and a tiny no-hardware bridge pump now orchestrates both directions in one text-only pass.
 
 ## Verified
 
@@ -41,6 +41,8 @@ Local-first development is underway. Bridge frame v0 is locked, local codec is i
 - Decision `D005` added: semantic text-only bitchat-side MVP seam; do not forge stock `BitchatPacket` bytes for MVP.
 - Fake bitchat-side text carrier seam implemented at `tools/bridge_frame_codec/bitchat_text.py` with semantic text-only `BitchatTextCarrier`, `BitchatPublishedText`, `BitchatOutboundText`, and `FakeBitchatTextCarrier`.
 - Fake bitchat text carrier tests implemented at `tests/test_bitchat_text.py`, proving decoded `DeliveredText` handoff and fake carrier-originated public text through existing MeshCore transport-neutral helpers.
+- No-hardware bridge pump helper implemented at `tools/bridge_frame_codec/bridge_pump.py` with `pump_text_bridge_once` and `BridgePumpResult`, draining MeshCore-delivered `DeliveredText` into a `BitchatTextCarrier` and forwarding carrier-originated public text through `send_text_over_transport`.
+- Fake-only bridge pump tests implemented at `tests/test_bridge_pump.py`, proving MeshCore -> carrier, carrier -> MeshCore, combined-direction counts, and fragmented carrier-originated sends without hardware/BLE/serial opens/stock packet forging.
 - Verification commands passed:
 
 ```text
@@ -51,7 +53,7 @@ python3 tools/bridge_serial.py --port /dev/ttyUSB0 'serial smoke'
 # printed one dry-run serial packet, no port opened
 
 python3 -m unittest discover -s tests -v
-Ran 51 tests in 0.013s
+Ran 54 tests in 0.013s
 OK
 ```
 
@@ -61,11 +63,11 @@ Eric approved continuing local implementation to the project's logical MVP concl
 
 ## Current milestone
 
-MVP-17 complete: implemented the local fake bitchat-side semantic text carrier seam and tests. `FakeBitchatTextCarrier` records decoded bridge text and queues fake carrier-originated public text without BLE, stock packet forging, hardware, or compatibility claims.
+MVP-18 complete: implemented the local fake/no-hardware bridge pump helper and tests. `pump_text_bridge_once` drains MeshCore-delivered `DeliveredText` into a semantic `BitchatTextCarrier` and forwards carrier-originated public text through the existing MeshCore transport-neutral path, returning a small count summary. It remains text-only: no BLE, no serial opens, no stock packet forging, no compatibility/security claims.
 
 ## Next recommended loop
 
-MVP-18: add a tiny local bridge orchestration helper that drains MeshCore-delivered `DeliveredText` into a `BitchatTextCarrier` and forwards carrier-originated public text into the MeshCore transport-neutral path in one no-hardware pump function, with fake-only tests.
+MVP-19: add a tiny no-hardware bridge pump demo/CLI smoke that wires fake MeshCore transport + fake `BitchatTextCarrier` through `pump_text_bridge_once` and prints deterministic both-direction summaries for operator sanity checks, without opening serial/BLE or claiming stock compatibility.
 
 ## Blockers
 
