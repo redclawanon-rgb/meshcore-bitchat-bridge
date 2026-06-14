@@ -30,6 +30,7 @@ Build an MVP bridge that can carry bitchat-like text messages over MeshCore/LoRa
 - `docs/gated-next-loops.md` — local post-MVP gate playbook map; no gate is active unless Eric explicitly picks one
 - `docs/public-release-preflight.md` — Gate 1 public release hygiene checklist with readiness, exact pre-push commands, non-claim wording checklist, stop criteria, and publication record
 - `docs/hardware-inventory-preflight.md` — Gate 2A hardware inventory evidence; no candidate serial device visible and no real serial/BLE/hardware access attempted
+- `docs/rak4631-target-setup.md` — Gate 2B target setup notes for Eric's RAK19003 + RAK4631 with LoRa/BLE antennas and recommended MeshCore USB Serial Companion firmware path
 - `README.md` — includes no-hardware demo CLI/smoke usage notes and safety/compatibility boundaries
 - `evidence/meshcore-payload-budget.md` — MeshCore payload budget evidence
 - `tools/bridge_frame_codec/` — local Python bridge-frame/message/MeshCore companion codec
@@ -103,4 +104,4 @@ Do not handle raw secrets in project files.
 
 ## Next action
 
-Gate 1 source-only public publication is complete at <https://github.com/redclawanon-rgb/meshcore-bitchat-bridge>. Gate 2A hardware inventory found no candidate serial device on this host/session and recorded evidence in `docs/hardware-inventory-preflight.md`; no real serial/BLE/hardware access was attempted. Next hardware step requires identifying/connecting a MeshCore-capable board and confirming its serial port/firmware before any guarded `--open-real-port` smoke.
+Gate 1 source-only public publication is complete at <https://github.com/redclawanon-rgb/meshcore-bitchat-bridge>. Gate 2A inventory found no candidate serial device on this host/session. Gate 2B target setup is recorded for Eric's RAK19003 base board + RAK4631 core board with LoRa/BLE antennas; MeshCore upstream supports RAK4631/19003 and the recommended first firmware path is RAK4631 USB Serial Companion. Next hardware step requires connecting the board to a host, identifying its serial path/installed firmware, and then deciding whether flashing or a guarded real-port smoke is appropriate.

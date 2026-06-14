@@ -84,10 +84,10 @@ Post-MVP gate map complete, Gate 1 local release hygiene preflight is documented
 
 ## Next recommended loop / gate
 
-Gate 1 publication is complete for source-only repo creation/push. Gate 2A hardware inventory preflight is recorded in `docs/hardware-inventory-preflight.md`: no candidate `/dev/ttyUSB*`, `/dev/ttyACM*`, or `/dev/serial/...` device was visible on this host/session, `lsusb` is not installed, no real serial/BLE/hardware access was attempted, no-hardware smoke passed, and 59 tests passed. Remaining gated choices: identify/connect target hardware for Gate 2B/2C, BLE exploration, scoped stock bitchat compatibility research, or production/security review last. Tags/releases/public announcements are still not created unless separately requested.
+Gate 1 publication is complete for source-only repo creation/push. Gate 2A hardware inventory preflight is recorded in `docs/hardware-inventory-preflight.md`: no candidate `/dev/ttyUSB*`, `/dev/ttyACM*`, or `/dev/serial/...` device was visible on this host/session, `lsusb` is not installed, no real serial/BLE/hardware access was attempted, no-hardware smoke passed, and 59 tests passed. Gate 2B target setup is recorded in `docs/rak4631-target-setup.md`: Eric's hardware is RAK19003 base board + RAK4631 core board with LoRa and BLE antennas; MeshCore upstream supports RAK4631/19003; first hardware path should prefer RAK4631 USB Serial Companion firmware for the serial-first bridge seam. Remaining gated choices: connect/identify target hardware for Gate 2C, BLE exploration, scoped stock bitchat compatibility research, or production/security review last. Tags/releases/public announcements are still not created unless separately requested.
 
 ## Blockers
 
-- Hardware availability not confirmed.
-- Target boards not chosen.
+- Target RAK19003 + RAK4631 hardware is identified but not visible as a serial device on this host/session.
+- Firmware actually installed on the RAK4631 is not confirmed yet.
 - Real stock bitchat integration remains unscoped and unclaimed; future work needs version-pinned upstream API/conformance decisions.
