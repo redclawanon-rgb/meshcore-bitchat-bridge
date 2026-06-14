@@ -101,6 +101,10 @@ Developer regression fixture:
 - The bitchat-side MVP seam is semantic public text only; these demos do not forge stock `BitchatPacket` bytes.
 - No stock bitchat app compatibility, interoperability, privacy, or production-security claims are made by these demos.
 
+## License
+
+MIT. See `LICENSE`.
+
 ## Project OS
 
 Future agent/human work should start with:
