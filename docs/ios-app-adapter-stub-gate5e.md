@@ -113,6 +113,23 @@ The config intentionally separates inbound and outbound behavior. `DebugMeshBrid
 
 This is not a runtime settings source yet; a later gate can decide whether a debug UI, launch argument, developer default, or test injection owns these values.
 
+## Bridge-side executable config fixture added
+
+The bridge repo now includes a fixture-only executable model of the iOS debug config and hook behavior:
+
+```text
+tools/bridge_frame_codec/ios_debug_adapter_fixture.py
+tests/test_ios_debug_adapter_fixture.py
+```
+
+It mirrors the Swift safety rules without pretending to be an iOS runtime:
+
+- disabled config emits no inbound events and refuses outbound publish with `adapter_disabled`;
+- inbound-only config emits accepted iOS public-text events and rejects unaccepted events, but still refuses outbound publish;
+- outbound-only config publishes through the existing semantic fake app carrier, creates deterministic `meshbridge-<fromBridgeID>-<messageID>` app IDs, and emits no inbound events;
+- fully-enabled config preserves local echo mode and allows both directions;
+- outbound length rejection does not publish to the fake app carrier.
+
 ## Tests added/updated
 
 `MeshBridgePublicTextAdapterTests.swift` covers:
@@ -127,6 +144,14 @@ This is not a runtime settings source yet; a later gate can decide whether a deb
 
 - accepted verified public messages produce a bridge event through `recordBridgeAcceptedPublicText`;
 - rejected/self/stale cases leave bridge events empty via the existing no-side-effects helper.
+
+`test_ios_debug_adapter_fixture.py` verifies the executable bridge-side config simulation:
+
+- disabled config is fully no-op;
+- inbound-only config emits only accepted events and refuses outbound;
+- outbound-only config publishes via the fake app carrier and emits no inbound;
+- fully-enabled config supports both directions and preserves local echo mode;
+- over-length outbound text is rejected without fake app publication.
 
 ## Verification run
 

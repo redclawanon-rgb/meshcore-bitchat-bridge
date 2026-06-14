@@ -108,6 +108,12 @@ Decision: iOS bridge debug wiring now has an explicit local config owner, `MeshB
 
 Rationale: With only an old MacBook available for non-Xcode validation, progress should remain source-level and low-risk. A separate fully-off config owner prevents accidental runtime activation while keeping the next integration seam concrete and parser-checkable.
 
+## D019 — Bridge-side iOS debug config fixture is executable evidence, not runtime proof
+
+Decision: The bridge repo now models the iOS debug config and hook behavior in Python via `IOSDebugMeshBridgeAdapterFixture`. This fixture is allowed to execute disabled, inbound-only, outbound-only, fully-enabled, and length-rejection cases as contract evidence, but it does not claim iOS app runtime, Xcode build, BLE, CoreBluetooth, stock bitchat interoperability, or radio delivery.
+
+Rationale: Because Eric's reachable MacBook is limited to macOS 11/Xcode 13.2.1 while the upstream app requires Swift tools 5.9/newer Xcode project support, bridge-side fixture execution is the safest way to keep validating the intended semantics without overstating platform proof.
+
 ## Pending decisions
 
 - Test hardware: which MeshCore-supported boards.

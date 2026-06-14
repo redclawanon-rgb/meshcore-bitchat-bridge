@@ -58,6 +58,14 @@ from .bitchat_text import (
     BitchatTextCarrier,
     FakeBitchatTextCarrier,
 )
+from .ios_debug_adapter_fixture import (
+    IOSDebugMeshBridgeAdapterFixture,
+    IOSMeshBridgeDebugAdapterConfiguration,
+    IOSMeshBridgeLocalEchoMode,
+    IOSMeshBridgePublishErrorCode,
+    IOSMeshBridgePublishPublicTextResult,
+    IOS_MESH_BRIDGE_DEBUG_DISABLED,
+)
 from .bridge_pump import AppAdapterBridgePumpResult, BridgePumpResult, pump_app_adapter_bridge_once, pump_text_bridge_once
 from .bridge_frame import (
     BridgeFrame,
@@ -153,6 +161,12 @@ __all__ = [
     "BitchatPublishedText",
     "BitchatTextCarrier",
     "FakeBitchatTextCarrier",
+    "IOSDebugMeshBridgeAdapterFixture",
+    "IOSMeshBridgeDebugAdapterConfiguration",
+    "IOSMeshBridgeLocalEchoMode",
+    "IOSMeshBridgePublishErrorCode",
+    "IOSMeshBridgePublishPublicTextResult",
+    "IOS_MESH_BRIDGE_DEBUG_DISABLED",
     "AppAdapterBridgePumpResult",
     "BridgePumpResult",
     "pump_app_adapter_bridge_once",
