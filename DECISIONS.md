@@ -54,6 +54,12 @@ Decision: The project may use deterministic non-secret Ed25519 fixtures to test 
 
 Rationale: Gate 4C confirms Ed25519 signing/verification over `toBinaryDataForSigning()` and announce-binding bytes, but real compatibility still depends on persistent device keys, Noise static identity, signed announces accepted by trust policy, peer registry updates, app lifecycle, and BLE transport behavior.
 
+## D010 — Gate 4D verified-sender simulation boundary
+
+Decision: The project may use `VerifiedSenderFixtureRegistry` as a local acceptance-policy fixture: signed identity announces register a peer's signing key, and signed public messages are accepted only after the sender has a verified announce and the public-message signature verifies against the registered key.
+
+Rationale: This ties packet byte shape, Ed25519 signing, identity TLV, and public-message receive gating together in deterministic tests. It remains a local seam simulation only; real interoperability still requires BLE discovery, Noise sessions, app lifecycle, persistence, trust UX/policy edge cases, and mobile peer-registry behavior.
+
 ## Pending decisions
 
 - Test hardware: which MeshCore-supported boards.

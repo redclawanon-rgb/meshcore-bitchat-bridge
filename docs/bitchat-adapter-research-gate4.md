@@ -638,6 +638,60 @@ OK
 
 Gate 4C confirms deterministic local Ed25519 fixture signing/verification over upstream-observed byte shapes. It still does not implement real identity persistence, Noise handshakes, trust policy, verified peer registry behavior, BLE lifecycle, or stock bitchat interoperability.
 
+## Gate 4D result: verified-sender acceptance simulation
+
+Gate 4D added a local-only acceptance-policy simulation that ties the Gate 4A/4B/4C byte fixtures together:
+
+- Decode identity announcement TLV into:
+  - nickname
+  - Noise public key
+  - Ed25519 signing public key
+  - optional direct-neighbor IDs
+- Verify a signed announce packet by checking the packet signature over `packet.encode_signing_preimage_v1()` with the announced signing public key.
+- Register the peer's nickname/noise key/signing key only after that announce verifies.
+- Accept a public text packet only when:
+  - packet type is `MESSAGE`
+  - sender has a previously verified announce
+  - packet has a signature
+  - signature verifies over the packet signing preimage using the registered signing key
+  - payload decodes as UTF-8 public text
+
+Local APIs added/expanded in `tools/bridge_frame_codec/bitchat_identity_fixture.py`:
+
+- `IdentityAnnouncementFixture`
+- `VerifiedPublicTextFixture`
+- `decode_identity_announcement_tlv(...)`
+- `sign_packet_fixture(...)`
+- `VerifiedSenderFixtureRegistry.verify_and_register_announce(...)`
+- `VerifiedSenderFixtureRegistry.verified_public_text(...)`
+
+Acceptance tests added in `tests/test_bitchat_identity_fixture.py`:
+
+- `test_verified_sender_registry_accepts_only_announced_signed_public_text`
+- `test_verified_sender_registry_rejects_unsigned_and_wrong_key_messages`
+
+The simulation intentionally rejects:
+
+- signed public messages before a verified announce
+- unsigned public messages
+- public messages signed with the wrong key
+- announces whose signature does not verify against the signing key contained in the announce TLV
+- re-announces for an existing peer when the Noise public key changes
+
+Verification result:
+
+```text
+python3 -m unittest tests.test_bitchat_identity_fixture -v
+Ran 6 tests in 0.007s
+OK
+
+python3 -m unittest discover -s tests -v
+Ran 78 tests in 0.444s
+OK
+```
+
+Gate 4D is still not stock bitchat compatibility. It does not model BLE discovery, Noise sessions, app lifecycle, persistence, QR/manual trust UX, all iOS/Android trust-policy edge cases, or real mobile peer registries. It only proves that this repo can locally simulate the essential announce-gated signed-public-message acceptance seam.
+
 ## Decision from this gate
 
 Keep the bridge's operational path as:

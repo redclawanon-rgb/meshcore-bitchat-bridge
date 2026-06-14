@@ -6,13 +6,16 @@ from tools.bridge_frame_codec import (
     BITCHAT_RECIPIENT_BROADCAST,
     BitchatIdentityFixtureError,
     BitchatPacketFixture,
+    VerifiedSenderFixtureRegistry,
     canonical_announce_bytes,
+    decode_identity_announcement_tlv,
     ed25519_private_key_from_seed,
     ed25519_private_seed_bytes,
     ed25519_public_key_bytes_from_seed,
     ed25519_sign_fixture,
     ed25519_verify_fixture,
     encode_identity_announcement_tlv,
+    sign_packet_fixture,
 )
 
 
@@ -71,6 +74,11 @@ class BitchatIdentityFixtureTests(unittest.TestCase):
             "032003a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8"
             "04084142434445464748",
         )
+        decoded = decode_identity_announcement_tlv(tlv)
+        self.assertEqual(decoded.nickname, "alice")
+        self.assertEqual(decoded.noise_public_key, bytes(range(32, 64)))
+        self.assertEqual(decoded.signing_public_key, ed25519_public_key_bytes_from_seed(bytes(range(32))))
+        self.assertEqual(decoded.direct_neighbors, (b"ABCDEFGH",))
         with self.assertRaisesRegex(BitchatIdentityFixtureError, "nickname TLV value must be <=255 bytes"):
             encode_identity_announcement_tlv(
                 nickname="x" * 256,
@@ -101,6 +109,105 @@ class BitchatIdentityFixtureTests(unittest.TestCase):
         )
         self.assertTrue(ed25519_verify_fixture(signature, preimage, signing_public_key))
         self.assertFalse(ed25519_verify_fixture(signature, packet.encode_raw_v1(), signing_public_key))
+
+    def test_verified_sender_registry_accepts_only_announced_signed_public_text(self):
+        seed = bytes(range(32))
+        peer_id = bytes.fromhex("0102030405060708")
+        announcement_payload = encode_identity_announcement_tlv(
+            nickname="alice",
+            noise_public_key=bytes(range(32, 64)),
+            signing_public_key=ed25519_public_key_bytes_from_seed(seed),
+        )
+        unsigned_announce = BitchatPacketFixture(
+            version=BITCHAT_PACKET_VERSION_V1,
+            packet_type=1,
+            ttl=7,
+            timestamp_ms=0x0000018F3D2A1B00,
+            sender_id=peer_id,
+            payload=announcement_payload,
+        )
+        signed_announce = sign_packet_fixture(unsigned_announce, seed)
+        signed_public_message = sign_packet_fixture(
+            BitchatPacketFixture(
+                version=BITCHAT_PACKET_VERSION_V1,
+                packet_type=BITCHAT_MESSAGE_TYPE_MESSAGE,
+                ttl=7,
+                timestamp_ms=0x0000018F3D2A1B01,
+                sender_id=peer_id,
+                recipient_id=BITCHAT_RECIPIENT_BROADCAST,
+                payload=b"hello verified mesh",
+            ),
+            seed,
+        )
+
+        registry = VerifiedSenderFixtureRegistry()
+        with self.assertRaisesRegex(BitchatIdentityFixtureError, "sender has no verified announce"):
+            registry.verified_public_text(signed_public_message)
+
+        registered = registry.verify_and_register_announce(signed_announce)
+        self.assertEqual(registered.nickname, "alice")
+
+        accepted = registry.verified_public_text(signed_public_message)
+        self.assertEqual(accepted.peer_id, peer_id)
+        self.assertEqual(accepted.nickname, "alice")
+        self.assertEqual(accepted.text, "hello verified mesh")
+
+    def test_verified_sender_registry_rejects_unsigned_and_wrong_key_messages(self):
+        seed = bytes(range(32))
+        wrong_seed = bytes(range(1, 33))
+        peer_id = bytes.fromhex("0102030405060708")
+        registry = VerifiedSenderFixtureRegistry()
+        registry.verify_and_register_announce(
+            sign_packet_fixture(
+                BitchatPacketFixture(
+                    version=BITCHAT_PACKET_VERSION_V1,
+                    packet_type=1,
+                    ttl=7,
+                    timestamp_ms=0x0000018F3D2A1B00,
+                    sender_id=peer_id,
+                    payload=encode_identity_announcement_tlv(
+                        nickname="alice",
+                        noise_public_key=bytes(range(32, 64)),
+                        signing_public_key=ed25519_public_key_bytes_from_seed(seed),
+                    ),
+                ),
+                seed,
+            )
+        )
+
+        unsigned_message = BitchatPacketFixture(
+            version=BITCHAT_PACKET_VERSION_V1,
+            packet_type=BITCHAT_MESSAGE_TYPE_MESSAGE,
+            ttl=7,
+            timestamp_ms=0x0000018F3D2A1B01,
+            sender_id=peer_id,
+            recipient_id=BITCHAT_RECIPIENT_BROADCAST,
+            payload=b"unsigned",
+        )
+        with self.assertRaisesRegex(BitchatIdentityFixtureError, "signed public message is required"):
+            registry.verified_public_text(unsigned_message)
+
+        wrong_key_signed_message = sign_packet_fixture(unsigned_message, wrong_seed)
+        with self.assertRaisesRegex(BitchatIdentityFixtureError, "signature did not verify"):
+            registry.verified_public_text(wrong_key_signed_message)
+
+        bad_announce = sign_packet_fixture(
+            BitchatPacketFixture(
+                version=BITCHAT_PACKET_VERSION_V1,
+                packet_type=1,
+                ttl=7,
+                timestamp_ms=0x0000018F3D2A1B02,
+                sender_id=bytes.fromhex("1112131415161718"),
+                payload=encode_identity_announcement_tlv(
+                    nickname="mallory",
+                    noise_public_key=bytes(range(64, 96)),
+                    signing_public_key=ed25519_public_key_bytes_from_seed(seed),
+                ),
+            ),
+            wrong_seed,
+        )
+        with self.assertRaisesRegex(BitchatIdentityFixtureError, "announce signature did not verify"):
+            registry.verify_and_register_announce(bad_announce)
 
 
 if __name__ == "__main__":

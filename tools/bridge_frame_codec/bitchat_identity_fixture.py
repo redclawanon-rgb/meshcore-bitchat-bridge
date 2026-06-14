@@ -8,15 +8,38 @@ open BLE, or claim stock bitchat interoperability.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
 from cryptography.hazmat.primitives.serialization import Encoding, PrivateFormat, PublicFormat, NoEncryption
+
+from .bitchat_packet_fixture import BITCHAT_MESSAGE_TYPE_MESSAGE, BitchatPacketFixture
 
 ANNOUNCE_CONTEXT_V1 = b"bitchat-announce-v1"
 IDENTITY_TLV_NICKNAME = 0x01
 IDENTITY_TLV_NOISE_PUBLIC_KEY = 0x02
 IDENTITY_TLV_SIGNING_PUBLIC_KEY = 0x03
 IDENTITY_TLV_DIRECT_NEIGHBORS = 0x04
+
+
+@dataclass(frozen=True, slots=True)
+class IdentityAnnouncementFixture:
+    """Decoded identity announcement TLV fixture."""
+
+    nickname: str
+    noise_public_key: bytes
+    signing_public_key: bytes
+    direct_neighbors: tuple[bytes, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class VerifiedPublicTextFixture:
+    """Accepted signed public text fixture result."""
+
+    peer_id: bytes
+    nickname: str
+    text: str
 
 
 class BitchatIdentityFixtureError(ValueError):
@@ -120,6 +143,118 @@ def encode_identity_announcement_tlv(
         if neighbors:
             _append_tlv(out, IDENTITY_TLV_DIRECT_NEIGHBORS, neighbors)
     return bytes(out)
+
+
+def decode_identity_announcement_tlv(data: bytes) -> IdentityAnnouncementFixture:
+    """Decode the observed identity announcement TLV fields for fixtures."""
+
+    offset = 0
+    nickname: str | None = None
+    noise_public_key: bytes | None = None
+    signing_public_key: bytes | None = None
+    direct_neighbors: tuple[bytes, ...] = ()
+    while offset + 2 <= len(data):
+        tlv_type = data[offset]
+        offset += 1
+        length = data[offset]
+        offset += 1
+        if offset + length > len(data):
+            raise BitchatIdentityFixtureError("identity announcement TLV length exceeds payload")
+        value = data[offset : offset + length]
+        offset += length
+        if tlv_type == IDENTITY_TLV_NICKNAME:
+            try:
+                nickname = value.decode("utf-8")
+            except UnicodeDecodeError as exc:
+                raise BitchatIdentityFixtureError("identity announcement nickname is not UTF-8") from exc
+        elif tlv_type == IDENTITY_TLV_NOISE_PUBLIC_KEY:
+            noise_public_key = value
+        elif tlv_type == IDENTITY_TLV_SIGNING_PUBLIC_KEY:
+            signing_public_key = value
+        elif tlv_type == IDENTITY_TLV_DIRECT_NEIGHBORS:
+            if len(value) % 8 != 0:
+                raise BitchatIdentityFixtureError("direct-neighbor TLV length must be a multiple of 8")
+            direct_neighbors = tuple(value[index : index + 8] for index in range(0, len(value), 8))
+        else:
+            continue
+    if offset != len(data):
+        raise BitchatIdentityFixtureError("trailing partial identity announcement TLV")
+    if nickname is None or noise_public_key is None or signing_public_key is None:
+        raise BitchatIdentityFixtureError("identity announcement missing required TLV field")
+    if len(signing_public_key) != 32:
+        raise BitchatIdentityFixtureError("identity announcement signing public key must be 32 bytes")
+    return IdentityAnnouncementFixture(
+        nickname=nickname,
+        noise_public_key=noise_public_key,
+        signing_public_key=signing_public_key,
+        direct_neighbors=direct_neighbors,
+    )
+
+
+def sign_packet_fixture(packet: BitchatPacketFixture, seed: bytes) -> BitchatPacketFixture:
+    """Attach an Ed25519 signature over the observed packet signing preimage."""
+
+    return BitchatPacketFixture(
+        version=packet.version,
+        packet_type=packet.packet_type,
+        ttl=packet.ttl,
+        timestamp_ms=packet.timestamp_ms,
+        sender_id=packet.sender_id,
+        recipient_id=packet.recipient_id,
+        payload=packet.payload,
+        signature=ed25519_sign_fixture(packet.encode_signing_preimage_v1(), seed),
+    )
+
+
+class VerifiedSenderFixtureRegistry:
+    """Local-only simulation of announce-gated signed public-message acceptance.
+
+    This intentionally models just the byte/signature acceptance seam observed in
+    upstream code: a signed identity announce stores a peer's signing public key,
+    and later public messages from that peer must carry a valid Ed25519 signature
+    over their `toBinaryDataForSigning()` bytes. It does not model BLE, Noise,
+    lifecycle timing, persistence, key mismatch policy beyond rejection, or stock
+    app compatibility.
+    """
+
+    def __init__(self) -> None:
+        self._peers: dict[bytes, IdentityAnnouncementFixture] = {}
+
+    def verify_and_register_announce(self, packet: BitchatPacketFixture) -> IdentityAnnouncementFixture:
+        announcement = decode_identity_announcement_tlv(packet.payload)
+        if packet.signature is None:
+            raise BitchatIdentityFixtureError("signed announce is required before registering peer")
+        if not ed25519_verify_fixture(
+            packet.signature,
+            packet.encode_signing_preimage_v1(),
+            announcement.signing_public_key,
+        ):
+            raise BitchatIdentityFixtureError("identity announce signature did not verify")
+        existing = self._peers.get(packet.sender_id)
+        if existing is not None and existing.noise_public_key != announcement.noise_public_key:
+            raise BitchatIdentityFixtureError("identity announce noise key mismatch for peer")
+        self._peers[packet.sender_id] = announcement
+        return announcement
+
+    def verified_public_text(self, packet: BitchatPacketFixture) -> VerifiedPublicTextFixture:
+        if packet.packet_type != BITCHAT_MESSAGE_TYPE_MESSAGE:
+            raise BitchatIdentityFixtureError("only public MESSAGE packets are accepted by this fixture")
+        if packet.signature is None:
+            raise BitchatIdentityFixtureError("signed public message is required")
+        announcement = self._peers.get(packet.sender_id)
+        if announcement is None:
+            raise BitchatIdentityFixtureError("public message sender has no verified announce")
+        if not ed25519_verify_fixture(
+            packet.signature,
+            packet.encode_signing_preimage_v1(),
+            announcement.signing_public_key,
+        ):
+            raise BitchatIdentityFixtureError("public message signature did not verify for registered sender")
+        return VerifiedPublicTextFixture(
+            peer_id=packet.sender_id,
+            nickname=announcement.nickname,
+            text=packet.public_text,
+        )
 
 
 def _append_tlv(out: bytearray, tlv_type: int, value: bytes) -> None:
