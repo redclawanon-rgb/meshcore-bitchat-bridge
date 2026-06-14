@@ -68,11 +68,24 @@ What it does:
 - Pumps one fake carrier-originated public text back through the MeshCore transport-neutral path.
 - Prints JSON with `mode: "no-hardware"`, explicit safety markers, pump counts, carrier publications, receiver inbox, and fake transport summaries.
 
+### Drift-resistant no-hardware smoke transcript
+
+```bash
+python3 tools/no_hardware_smoke.py
+```
+
+What it does:
+
+- Runs the three documented demo CLIs above as local subprocesses.
+- Parses each CLI's JSON output and emits one stable JSON transcript with selected fields.
+- Keeps README/demo examples checkable without opening serial, BLE, hardware, network, secrets, or stock bitchat integration.
+- Invokes `bridge_serial.py` only in its default `dry-run-no-port-opened` path.
+
 ### Safety and compatibility boundaries
 
 - No serial port is opened by default.
 - No BLE adapter is opened or scanned by these demos.
-- `bridge_sim.py` and `bridge_pump_demo.py` use simulated/fake transports only.
+- `bridge_sim.py`, `bridge_pump_demo.py`, and `no_hardware_smoke.py` use local subprocesses plus simulated/fake transports only.
 - `bridge_serial.py` is a dry-run byte encoder unless `--open-real-port` is explicitly provided.
 - The bitchat-side MVP seam is semantic public text only; these demos do not forge stock `BitchatPacket` bytes.
 - No stock bitchat app compatibility, interoperability, privacy, or production-security claims are made by these demos.
