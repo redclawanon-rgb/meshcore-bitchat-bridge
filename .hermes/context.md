@@ -21,6 +21,7 @@ Build an MVP bridge that can carry bitchat-like text messages over MeshCore/LoRa
 - `BITCHAT_SEAM.md` — public bitchat source inspection and text-only future carrier boundary
 - `tools/bridge_frame_codec/bitchat_text.py` — fake semantic bitchat-side public text carrier seam
 - `tools/bridge_frame_codec/bridge_pump.py` — no-hardware text bridge pump between MeshCore delivered text and fake/semantic bitchat carrier
+- `tools/bridge_pump_demo.py` — no-hardware bridge pump demo CLI wiring fake MeshCore transport + fake bitchat text carrier
 - `evidence/meshcore-payload-budget.md` — MeshCore payload budget evidence
 - `tools/bridge_frame_codec/` — local Python bridge-frame/message/MeshCore companion codec
 - `tools/bridge_frame_codec/transport.py` — transport-neutral companion datagram seam + fake transport
@@ -39,6 +40,7 @@ Build an MVP bridge that can carry bitchat-like text messages over MeshCore/LoRa
 - `tests/test_bridge_transport.py` — fake transport tests
 - `tests/test_bitchat_text.py` — fake bitchat-side semantic text carrier tests
 - `tests/test_bridge_pump.py` — fake-only no-hardware bridge pump tests
+- `tests/test_bridge_pump_demo_cli.py` — bridge pump no-hardware demo CLI tests
 - `tests/vectors/bridge-frame-v0.json` — canonical v0 test vector
 
 ## Current MVP scope
@@ -82,7 +84,7 @@ Use a transport-neutral companion-datagram seam for live adapters. First live ad
 python3 -m unittest discover -s tests -v
 ```
 
-Latest verified result: 54 tests passed; serial transport covered through transport-neutral bridge helpers with fake streams only; serial dry-run still emits no-port-opened packets by default; MVP-15 dry-run replay smoke proves serial TX packet bytes can be extracted and replayed through simulated MeshCore notifications into a fake serial stream/receiver inbox without real port access. MVP-16 inspected public bitchat source and documented a semantic text-only bitchat-side carrier boundary in `BITCHAT_SEAM.md`; MVP-17 implemented a fake in-memory `BitchatTextCarrier` proving decoded `DeliveredText` handoff plus fake carrier-originated public text through the existing MeshCore transport-neutral path; MVP-18 implemented `pump_text_bridge_once`, a no-hardware bridge pump that drains MeshCore-delivered `DeliveredText` into a semantic carrier and forwards carrier-originated public text through `send_text_over_transport`. No stock compatibility claim is made.
+Latest verified result: 56 tests passed; serial transport covered through transport-neutral bridge helpers with fake streams only; serial dry-run still emits no-port-opened packets by default; MVP-15 dry-run replay smoke proves serial TX packet bytes can be extracted and replayed through simulated MeshCore notifications into a fake serial stream/receiver inbox without real port access. MVP-16 inspected public bitchat source and documented a semantic text-only bitchat-side carrier boundary in `BITCHAT_SEAM.md`; MVP-17 implemented a fake in-memory `BitchatTextCarrier` proving decoded `DeliveredText` handoff plus fake carrier-originated public text through the existing MeshCore transport-neutral path; MVP-18 implemented `pump_text_bridge_once`, a no-hardware bridge pump that drains MeshCore-delivered `DeliveredText` into a semantic carrier and forwards carrier-originated public text through `send_text_over_transport`; MVP-19 implemented `tools/bridge_pump_demo.py`, a fake-only bridge pump CLI smoke that prints deterministic both-direction JSON summaries with explicit no-hardware markers. No stock compatibility claim is made.
 
 ## Approval boundaries
 
@@ -92,4 +94,4 @@ Do not handle raw secrets in project files.
 
 ## Next action
 
-Run MVP-19: add a tiny no-hardware bridge pump demo/CLI smoke that wires fake MeshCore transport + fake `BitchatTextCarrier` through `pump_text_bridge_once` and prints deterministic both-direction summaries for operator sanity checks. Keep this text-only and no-hardware/no-network; any real serial access still requires explicit `--open-real-port`/`open_real_port=True` approval and invocation, and any stock bitchat integration remains a later version-pinned scope decision.
+Run MVP-20: add a small README/usage note for the no-hardware demo CLIs (`bridge_sim.py`, `bridge_serial.py`, `bridge_pump_demo.py`) so operators can run local sanity checks without touching serial/BLE or assuming stock bitchat compatibility. Keep this text-only and no-hardware/no-network; any real serial access still requires explicit `--open-real-port`/`open_real_port=True` approval and invocation, and any stock bitchat integration remains a later version-pinned scope decision.
