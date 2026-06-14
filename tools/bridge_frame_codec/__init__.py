@@ -1,5 +1,11 @@
 """Bridge frame v0 codec for MeshCore ↔ bitchat bridge MVP."""
 
+from .bitchat_text import (
+    BitchatOutboundText,
+    BitchatPublishedText,
+    BitchatTextCarrier,
+    FakeBitchatTextCarrier,
+)
 from .bridge_frame import (
     BridgeFrame,
     BridgeFrameError,
@@ -44,6 +50,10 @@ from .transport import (
 )
 
 __all__ = [
+    "BitchatOutboundText",
+    "BitchatPublishedText",
+    "BitchatTextCarrier",
+    "FakeBitchatTextCarrier",
     "BridgeFrame",
     "BridgeFrameError",
     "MAGIC",

@@ -19,6 +19,7 @@ Build an MVP bridge that can carry bitchat-like text messages over MeshCore/LoRa
 - `DECISIONS.md` — decisions and pending gates
 - `ADAPTER.md` — live transport adapter decision/seam
 - `BITCHAT_SEAM.md` — public bitchat source inspection and text-only future carrier boundary
+- `tools/bridge_frame_codec/bitchat_text.py` — fake semantic bitchat-side public text carrier seam
 - `evidence/meshcore-payload-budget.md` — MeshCore payload budget evidence
 - `tools/bridge_frame_codec/` — local Python bridge-frame/message/MeshCore companion codec
 - `tools/bridge_frame_codec/transport.py` — transport-neutral companion datagram seam + fake transport
@@ -35,6 +36,7 @@ Build an MVP bridge that can carry bitchat-like text messages over MeshCore/LoRa
 - `tests/test_bridge_sim.py` — simulator end-to-end tests
 - `tests/test_bridge_sim_cli.py` — simulator CLI tests
 - `tests/test_bridge_transport.py` — fake transport tests
+- `tests/test_bitchat_text.py` — fake bitchat-side semantic text carrier tests
 - `tests/vectors/bridge-frame-v0.json` — canonical v0 test vector
 
 ## Current MVP scope
@@ -78,7 +80,7 @@ Use a transport-neutral companion-datagram seam for live adapters. First live ad
 python3 -m unittest discover -s tests -v
 ```
 
-Latest verified result: 48 tests passed; serial transport covered through transport-neutral bridge helpers with fake streams only; serial dry-run still emits no-port-opened packets by default; MVP-15 dry-run replay smoke proves serial TX packet bytes can be extracted and replayed through simulated MeshCore notifications into a fake serial stream/receiver inbox without real port access. MVP-16 inspected public bitchat source and documented a semantic text-only bitchat-side carrier boundary in `BITCHAT_SEAM.md`; no stock compatibility claim is made.
+Latest verified result: 51 tests passed; serial transport covered through transport-neutral bridge helpers with fake streams only; serial dry-run still emits no-port-opened packets by default; MVP-15 dry-run replay smoke proves serial TX packet bytes can be extracted and replayed through simulated MeshCore notifications into a fake serial stream/receiver inbox without real port access. MVP-16 inspected public bitchat source and documented a semantic text-only bitchat-side carrier boundary in `BITCHAT_SEAM.md`; MVP-17 implemented a fake in-memory `BitchatTextCarrier` proving decoded `DeliveredText` handoff plus fake carrier-originated public text through the existing MeshCore transport-neutral path. No stock compatibility claim is made.
 
 ## Approval boundaries
 
@@ -88,4 +90,4 @@ Do not handle raw secrets in project files.
 
 ## Next action
 
-Run MVP-17: implement the fake bitchat-side text carrier seam locally (`BitchatTextCarrier`/`FakeBitchatTextCarrier`) and test decoded `DeliveredText` handoff plus fake carrier-originated public text through the existing MeshCore transport-neutral path. Keep this text-only and no-hardware/no-network; any real serial access still requires explicit `--open-real-port`/`open_real_port=True` approval and invocation, and any stock bitchat integration remains a later version-pinned scope decision.
+Run MVP-18: add a tiny local bridge orchestration helper that drains MeshCore-delivered `DeliveredText` into a `BitchatTextCarrier` and forwards carrier-originated public text into the MeshCore transport-neutral path in one no-hardware pump function, with fake-only tests. Keep this text-only and no-hardware/no-network; any real serial access still requires explicit `--open-real-port`/`open_real_port=True` approval and invocation, and any stock bitchat integration remains a later version-pinned scope decision.
