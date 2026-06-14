@@ -21,21 +21,21 @@ from pathlib import Path
 from typing import TextIO, Sequence
 
 try:
-    from bridge_frame_codec import SimulatedBridgeNode
     from bridge_frame_codec.bridge_frame import BridgeFrameError
     from bridge_frame_codec.serial_adapter import (
         SerialCompanionDatagramTransport,
         SerialRxPacketReader,
         wrap_serial_tx_packet,
     )
+    from bridge_frame_codec.sim import SimulatedBridgeNode
 except ModuleNotFoundError:  # imported as tools.meshcore_bridge_daemon from tests
-    from tools.bridge_frame_codec import SimulatedBridgeNode
     from tools.bridge_frame_codec.bridge_frame import BridgeFrameError
     from tools.bridge_frame_codec.serial_adapter import (
         SerialCompanionDatagramTransport,
         SerialRxPacketReader,
         wrap_serial_tx_packet,
     )
+    from tools.bridge_frame_codec.sim import SimulatedBridgeNode
 
 
 def build_parser() -> argparse.ArgumentParser:
