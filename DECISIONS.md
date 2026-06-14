@@ -78,6 +78,12 @@ Decision: The local bridge pump may use the app-native adapter contract through 
 
 Rationale: This connects the Gate 5A app adapter seam to the actual bridge loop while preserving the no-hardware/no-BLE/no-stock-compatibility boundary. The older semantic-carrier pump remains for simpler fake-carrier tests. Android/iOS insertion points are still future design/spike work.
 
+## D014 — Gate 5C app insertion-point mapping
+
+Decision: Future live app work should use app-side semantic public-text adapter surfaces after existing Android/iOS acceptance policy, not raw BLE/BinaryProtocol hooks. Recommended inbound hooks are Android `MessageHandler.handleBroadcastMessage(...)` or service delegate `onMessageReceived(...)`, and iOS `BLEPublicMessageHandlerEnvironment.deliverPublicMessage(...)` or `ChatTransportEventCoordinator.didReceivePublicMessage(...)`. Recommended outbound hooks are Android public `meshService.sendMessage(...)` via a narrow service/API wrapper and iOS `BLEService.sendMessage(..., to: nil, messageID:, timestamp:)` or a UI-level outgoing intent when local echo is desired.
+
+Rationale: Gate 5C inspection found both apps already own BLE decode, fragment reassembly, announce trust, signature policy, public-message acceptance, dedup/sync, route/fragment send behavior, lifecycle, and UI persistence. The bridge should subscribe to verified semantic public text and publish bridge text through existing app send APIs rather than duplicating mobile internals.
+
 ## Pending decisions
 
 - Test hardware: which MeshCore-supported boards.

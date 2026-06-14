@@ -19,7 +19,8 @@ Build an MVP bridge that can carry bitchat-like text messages over MeshCore/LoRa
 - `DECISIONS.md` — decisions and pending gates
 - `ADAPTER.md` — live transport adapter decision/seam
 - `BITCHAT_SEAM.md` — public bitchat source inspection and text-only future carrier boundary
-- `docs/bitchat-app-native-adapter-gate5a.md` — Gate 5A app-native adapter design/skeleton boundary and next Gate 5B recommendation
+- `docs/bitchat-app-native-adapter-gate5a.md` — Gates 5A/5B app-native adapter design/skeleton and adapter-backed pump boundary
+- `docs/bitchat-app-insertion-points-gate5c.md` — Gate 5C Android/iOS insertion-point mapping and next Gate 5D API-spec recommendation
 - `tools/bridge_frame_codec/bitchat_app_adapter.py` — fixture-backed app-native adapter seam that emits semantic public-text events
 - `tools/bridge_frame_codec/bitchat_text.py` — fake semantic bitchat-side public text carrier seam
 - `tools/bridge_frame_codec/bridge_pump.py` — no-hardware text bridge pumps: semantic carrier pump plus Gate 5B app-adapter-backed pump

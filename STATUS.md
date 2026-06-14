@@ -69,6 +69,7 @@ Local-first development is underway. Bridge frame v0 is locked, local codec is i
 - Gate 5A design doc added at `docs/bitchat-app-native-adapter-gate5a.md`; Decision `D012` added: prove the app-native adapter contract locally before Android/iOS live insertion points, while keeping BLE, Noise, lifecycle, route planning, trust UI, and persistence owned by future app-native layers.
 - Gate 5B adapter-backed no-hardware pump implemented in `tools/bridge_frame_codec/bridge_pump.py`: `pump_app_adapter_bridge_once(...)` drains MeshCore-delivered text into `BitchatAppAdapter.publish_bridge_text(...)`, ingests fixture-backed app packet bytes, and forwards emitted public-text events over the existing MeshCore transport-neutral send path.
 - Gate 5B tests added at `tests/test_bitchat_app_adapter_pump.py`; Decision `D013` added: adapter-backed pump integration is local fixture-only and does not open BLE, serial ports, mobile apps, hardware, or stock bitchat sessions.
+- Gate 5C Android/iOS insertion-point mapping added at `docs/bitchat-app-insertion-points-gate5c.md`; Decision `D014` added: future live app work should subscribe to verified semantic public-text events after app acceptance policy and publish bridge text through existing app public-send APIs, not raw BLE/BinaryProtocol hooks.
 - Verification commands passed:
 
 ```text
@@ -102,6 +103,9 @@ python3 -m unittest tests.test_bitchat_app_adapter_pump -v
 python3 -m unittest discover -s tests -v
 Ran 91 tests in 0.548s
 OK
+
+python -m pytest -q
+91 passed in 0.85s
 ```
 
 ## Approval note
@@ -114,7 +118,7 @@ Post-MVP gate map complete, Gate 1 local release hygiene preflight is documented
 
 ## Next recommended loop / gate
 
-Gate 1 publication is complete for source-only repo creation/push. Gate 2A hardware inventory preflight is recorded in `docs/hardware-inventory-preflight.md`: no candidate `/dev/ttyUSB*`, `/dev/ttyACM*`, or `/dev/serial/...` device was visible on this host/session, `lsusb` is not installed, no real serial/BLE/hardware access was attempted, no-hardware smoke passed, and 59 tests passed. Gate 2B target setup is recorded in `docs/rak4631-target-setup.md` for the loose RAK19003 + RAK4631 assembly. Gates 2C/2D/2E are complete for two MeshCore-flashed WisMesh Pockets on Eric's Windows home desktop: `pocket-1` is `COM5` / serial `BAE292D6B7431B72`; `pocket-2` is `COM8` / serial `99EF9E1DC9D17560`; the 20-message stability loop delivered 20/20 alternating messages with no duplicates or parse errors. Gates 2F/2G/2H are complete for the MeshCore-side daemon: named real-port opening is gated by `--open-real-ports`, JSONL event logging and state persistence are implemented, and live unplug/replug recovery for `pocket2` / `COM8` was proven. Gate 4 scoped bitchat adapter research plus Gate 4A/4B/4C/4D/4E conformance fixtures are complete, Gate 5A app-native adapter design/skeleton is complete, and Gate 5B adapter-backed no-hardware pump integration is complete. Recommended next gated choices: Gate 5C Android/iOS insertion-point mapping, longer unattended daemon runtime, Windows service/scheduled-task wrapper, third Pocket flashing, live BLE/app integration, production/security review, tags/releases, or public announcements.
+Gate 1 publication is complete for source-only repo creation/push. Gate 2A hardware inventory preflight is recorded in `docs/hardware-inventory-preflight.md`: no candidate `/dev/ttyUSB*`, `/dev/ttyACM*`, or `/dev/serial/...` device was visible on this host/session, `lsusb` is not installed, no real serial/BLE/hardware access was attempted, no-hardware smoke passed, and 59 tests passed. Gate 2B target setup is recorded in `docs/rak4631-target-setup.md` for the loose RAK19003 + RAK4631 assembly. Gates 2C/2D/2E are complete for two MeshCore-flashed WisMesh Pockets on Eric's Windows home desktop: `pocket-1` is `COM5` / serial `BAE292D6B7431B72`; `pocket-2` is `COM8` / serial `99EF9E1DC9D17560`; the 20-message stability loop delivered 20/20 alternating messages with no duplicates or parse errors. Gates 2F/2G/2H are complete for the MeshCore-side daemon: named real-port opening is gated by `--open-real-ports`, JSONL event logging and state persistence are implemented, and live unplug/replug recovery for `pocket2` / `COM8` was proven. Gate 4 scoped bitchat adapter research plus Gate 4A/4B/4C/4D/4E conformance fixtures are complete, Gates 5A/5B app-adapter seam/pump integration are complete, and Gate 5C Android/iOS insertion-point mapping is complete. Recommended next gated choices: Gate 5D platform-neutral app adapter API spec, longer unattended daemon runtime, Windows service/scheduled-task wrapper, third Pocket flashing, live BLE/app integration, production/security review, tags/releases, or public announcements.
 
 ## Blockers
 
