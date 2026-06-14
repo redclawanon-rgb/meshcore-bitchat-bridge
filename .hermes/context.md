@@ -29,6 +29,7 @@ Build an MVP bridge that can carry bitchat-like text messages over MeshCore/LoRa
 - `docs/mvp-handoff-index.md` — local MVP handoff/release-readiness index cross-linking protocol, adapter decisions, no-hardware demos, regression fixture, readiness handoff, blockers, and non-claims
 - `docs/gated-next-loops.md` — local post-MVP gate playbook map; no gate is active unless Eric explicitly picks one
 - `docs/public-release-preflight.md` — Gate 1 public release hygiene checklist with readiness, exact pre-push commands, non-claim wording checklist, stop criteria, and publication record
+- `docs/hardware-inventory-preflight.md` — Gate 2A hardware inventory evidence; no candidate serial device visible and no real serial/BLE/hardware access attempted
 - `README.md` — includes no-hardware demo CLI/smoke usage notes and safety/compatibility boundaries
 - `evidence/meshcore-payload-budget.md` — MeshCore payload budget evidence
 - `tools/bridge_frame_codec/` — local Python bridge-frame/message/MeshCore companion codec
@@ -102,4 +103,4 @@ Do not handle raw secrets in project files.
 
 ## Next action
 
-Gate 1 source-only public publication is complete at <https://github.com/redclawanon-rgb/meshcore-bitchat-bridge>. Repo settings verified: public, default branch `main`, MIT license, issues enabled, wiki/discussions disabled. Remaining gated choices: hardware smoke, real serial adapter smoke, BLE exploration, scoped stock bitchat compatibility research, or production/security review last. No tags/releases/public announcements have been created.
+Gate 1 source-only public publication is complete at <https://github.com/redclawanon-rgb/meshcore-bitchat-bridge>. Gate 2A hardware inventory found no candidate serial device on this host/session and recorded evidence in `docs/hardware-inventory-preflight.md`; no real serial/BLE/hardware access was attempted. Next hardware step requires identifying/connecting a MeshCore-capable board and confirming its serial port/firmware before any guarded `--open-real-port` smoke.

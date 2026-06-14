@@ -84,7 +84,7 @@ Post-MVP gate map complete, Gate 1 local release hygiene preflight is documented
 
 ## Next recommended loop / gate
 
-Gate 1 publication is complete for source-only repo creation/push. Remaining gated choices are: hardware smoke, real serial adapter smoke, BLE exploration, scoped stock bitchat compatibility research, or production/security review last. Tags/releases/public announcements are still not created unless separately requested.
+Gate 1 publication is complete for source-only repo creation/push. Gate 2A hardware inventory preflight is recorded in `docs/hardware-inventory-preflight.md`: no candidate `/dev/ttyUSB*`, `/dev/ttyACM*`, or `/dev/serial/...` device was visible on this host/session, `lsusb` is not installed, no real serial/BLE/hardware access was attempted, no-hardware smoke passed, and 59 tests passed. Remaining gated choices: identify/connect target hardware for Gate 2B/2C, BLE exploration, scoped stock bitchat compatibility research, or production/security review last. Tags/releases/public announcements are still not created unless separately requested.
 
 ## Blockers
 
