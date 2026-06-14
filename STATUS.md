@@ -88,6 +88,7 @@ Gate 1 publication is complete for source-only repo creation/push. Gate 2A hardw
 
 ## Blockers
 
-- Active Gate 2C target is Eric's three RAKwireless WisMesh Pocket units, but no Pocket is visible as a serial device on this host/session yet.
+- Active Gate 2C target is Eric's three RAKwireless WisMesh Pocket units; one Pocket is visible on Eric's Windows home desktop as `COM5` / `USB Serial Device (COM5)` / `USB\\VID_239A&PID_8029`.
+- `COM3` is Intel AMT SOL and should not be used; `COM4` is CH340 and likely unrelated unless Eric identifies another serial board.
 - Firmware actually installed on the WisMesh Pocket units is not confirmed yet; MeshCore RAK4631 USB Companion is the preferred first serial-smoke path.
 - Real stock bitchat integration remains unscoped and unclaimed; future work needs version-pinned upstream API/conformance decisions.

@@ -131,4 +131,6 @@ Stop before real serial access if:
 
 ## Current stop point
 
-The preferred hardware target is now the three WisMesh Pocket units, but none are visible as serial devices in this VPS/session. Gate 2C remains blocked until one Pocket is connected to the target host and its exact serial path/firmware role are identified.
+The preferred hardware target is now the three WisMesh Pocket units. Eric connected one Pocket to the Windows home desktop and reported it appears as `COM5`: `USB Serial Device (COM5)` with PNP ID prefix `USB\\VID_239A&PID_8029`, matching the RAK4631/nRF52840 USB identity observed in MeshCore upstream. `COM3` is Intel AMT SOL and should not be used; `COM4` is CH340 and is probably unrelated unless Eric identifies another attached serial board.
+
+Gate 2C can continue from the Windows desktop using `COM5`, starting with the dry-run/no-open command. A guarded real-port command should still require explicit approval for `COM5` after the dry-run succeeds and the local Python environment is ready.
