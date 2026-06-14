@@ -25,6 +25,12 @@ from .meshcore_companion import (
     parse_channel_data_recv,
 )
 from .sim import DeliveredText, SimulatedBridgeNode, SimulatedMeshCoreLink
+from .transport import (
+    CompanionDatagramTransport,
+    FakeCompanionDatagramTransport,
+    drain_transport_to_node,
+    send_text_over_transport,
+)
 
 __all__ = [
     "BridgeFrame",
@@ -52,4 +58,8 @@ __all__ = [
     "DeliveredText",
     "SimulatedBridgeNode",
     "SimulatedMeshCoreLink",
+    "CompanionDatagramTransport",
+    "FakeCompanionDatagramTransport",
+    "drain_transport_to_node",
+    "send_text_over_transport",
 ]

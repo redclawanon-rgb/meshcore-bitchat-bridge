@@ -2,7 +2,7 @@
 
 ## Current state
 
-Local-first development is underway. Bridge frame v0 is locked, local codec is implemented, message-level UTF-8 text fragmentation/reassembly helpers are implemented, a local CLI harness can encode/decode frames without hardware, MeshCore companion channel-data command/notification wrappers are implemented locally, a no-hardware two-node simulator proves end-to-end text exchange over the local stack, and a simulator demo CLI prints deterministic A ↔ B exchange summaries.
+Local-first development is underway. Bridge frame v0 is locked, local codec is implemented, message-level UTF-8 text fragmentation/reassembly helpers are implemented, a local CLI harness can encode/decode frames without hardware, MeshCore companion channel-data command/notification wrappers are implemented locally, a no-hardware two-node simulator proves end-to-end text exchange over the local stack, a simulator demo CLI prints deterministic A ↔ B exchange summaries, and a transport-neutral companion datagram seam now has a fake transport harness.
 
 ## Verified
 
@@ -25,6 +25,8 @@ Local-first development is underway. Bridge frame v0 is locked, local codec is i
 - Simulator CLI tests implemented at `tests/test_bridge_sim_cli.py`.
 - Adapter path decision documented at `ADAPTER.md`.
 - Decision `D004` added: transport-neutral seam, serial first, BLE second.
+- Transport seam implemented at `tools/bridge_frame_codec/transport.py`.
+- Fake transport tests implemented at `tests/test_bridge_transport.py`.
 - Verification commands passed:
 
 ```text
@@ -32,7 +34,7 @@ python3 tools/bridge_sim.py --one-way --alice-text 'smoke test over simulated Me
 # delivered one alice -> bob simulated message
 
 python3 -m unittest discover -s tests -v
-Ran 33 tests in 0.011s
+Ran 36 tests in 0.012s
 OK
 ```
 
@@ -42,17 +44,16 @@ Eric approved continuing local implementation to the project's logical MVP concl
 
 ## Current milestone
 
-MVP-10 complete: serial/BLE/hardware adapter path decision documented.
+MVP-11 complete: transport interface + fake transport harness.
 
 ## Next recommended loop
 
-MVP-11: transport interface + fake transport harness:
+MVP-12: serial adapter scaffold, still safe without real hardware:
 
-- create `tools/bridge_frame_codec/transport.py`;
-- create `tests/test_bridge_transport.py`;
-- define an async-ish or simple testable interface around companion command/notification bytes;
-- prove send/receive through fake transport using existing simulator byte path;
-- keep real hardware access gated.
+- implement serial companion packet wrapper/unwrapper for `0x3c + uint16_le(size) + command`;
+- add tests for exact serial write bytes and inbound packet extraction;
+- add dry-run CLI output for a `/dev/ttyUSB0`-style send without opening a port;
+- keep real serial open/send gated on confirmed hardware/port.
 
 ## Blockers
 

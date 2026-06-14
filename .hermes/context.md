@@ -20,6 +20,7 @@ Build an MVP bridge that can carry bitchat-like text messages over MeshCore/LoRa
 - `ADAPTER.md` — live transport adapter decision/seam
 - `evidence/meshcore-payload-budget.md` — MeshCore payload budget evidence
 - `tools/bridge_frame_codec/` — local Python bridge-frame/message/MeshCore companion codec
+- `tools/bridge_frame_codec/transport.py` — transport-neutral companion datagram seam + fake transport
 - `tools/bridge_cli.py` — local encode/decode CLI harness
 - `tools/bridge_sim.py` — no-hardware simulator demo CLI
 - `tests/test_bridge_frame_codec.py` — frame codec/unit tests
@@ -29,6 +30,7 @@ Build an MVP bridge that can carry bitchat-like text messages over MeshCore/LoRa
 - `tools/bridge_frame_codec/sim.py` — no-hardware two-node simulator
 - `tests/test_bridge_sim.py` — simulator end-to-end tests
 - `tests/test_bridge_sim_cli.py` — simulator CLI tests
+- `tests/test_bridge_transport.py` — fake transport tests
 - `tests/vectors/bridge-frame-v0.json` — canonical v0 test vector
 
 ## Current MVP scope
@@ -72,7 +74,7 @@ Use a transport-neutral companion-datagram seam for live adapters. First live ad
 python3 -m unittest discover -s tests -v
 ```
 
-Latest verified result: 33 tests passed; simulator CLI smoke delivered one alice → bob message.
+Latest verified result: 36 tests passed; simulator CLI smoke delivered one alice → bob message.
 
 ## Approval boundaries
 
@@ -82,4 +84,4 @@ Do not handle raw secrets in project files.
 
 ## Next action
 
-Run MVP-11: add `tools/bridge_frame_codec/transport.py` and `tests/test_bridge_transport.py`, defining a fake transport interface around the same command/notification bytes that the simulator already proves.
+Run MVP-12: add a no-hardware serial adapter scaffold with exact MeshCore serial packet wrapper/unwrapper tests and dry-run bytes, keeping real serial port access gated on confirmed hardware/port.
