@@ -319,3 +319,52 @@ All 20 attempts alternated directions:
 Each attempt delivered exactly one decoded text payload and saw the expected notification sequence `log_rx_data`, `msg_waiting`, `channel_data_recv`.
 
 This proves a short bidirectional LoRa reliability loop is stable under the current desk/test conditions. It still does not prove long-duration daemon behavior, mobile/stock bitchat compatibility, or performance under range/interference/load.
+
+## Gate 2F: continuous MeshCore-side daemon skeleton
+
+A gated continuous daemon skeleton was added at `tools/meshcore_bridge_daemon.py`. It opens one or more named MeshCore USB Companion serial ports only when `--open-real-ports` is passed, continuously reads serial frames, classifies companion frame types, polls `CMD_SYNC_NEXT_MESSAGE` after `msg_waiting` and after each `channel_data_recv` so queued messages are drained, decodes bridge text payloads, emits structured JSON events, and closes ports cleanly. It does not implement the real bitchat side yet.
+
+The daemon defaults to dry-run/no-open mode. Dry-run example:
+
+```powershell
+python tools/meshcore_bridge_daemon.py --port pocket1=COM5 --port pocket2=COM8 --inject-text pocket1:'dry run daemon' --duration-seconds 1
+```
+
+Verified dry-run output included:
+
+- `mode`: `dry-run-no-ports-opened`
+- `event_count`: `1`
+- first event: `daemon_plan`
+- `delivered_count`: `0`
+- `parse_error_count`: `0`
+
+Live smoke command on the Windows desktop:
+
+```powershell
+python tools/meshcore_bridge_daemon.py --port pocket1=COM5 --port pocket2=COM8 --inject-text pocket1:'gate2f daemon final smoke' --duration-seconds 5 --open-real-ports
+```
+
+Verified live output included:
+
+- `mode`: `real-ports-opened`
+- `ports`: `pocket1=COM5`, `pocket2=COM8`
+- `injection_count`: `1`
+- `delivered_count`: `1`
+- `parse_error_count`: `0`
+- `message_id_start`: time-derived (`63624` in the verified run), preventing daemon restart collisions with queued older message IDs
+- events included:
+  - `port_opened` for both ports
+  - `injected_text` on `pocket1` / `COM5`
+  - `ok` response on `pocket1`
+  - `log_rx_data` and `msg_waiting` on `pocket2`
+  - `channel_data_recv` on `pocket2`
+  - decoded delivered text: `gate2f daemon final smoke`
+  - follow-up `no_more_messages` after draining the queue
+  - `port_closed` for both ports
+
+Two daemon-specific issues were discovered and fixed during live testing:
+
+1. Windows serial ports are exclusive, so injected daemon text must write through the already-open serial handle rather than opening the TX port a second time.
+2. Restarting a daemon with message ID `1` can collide with older queued messages from the same bridge ID, causing fresh messages to be deduped. The daemon now uses a time-derived default `message_id_start`, with `--message-id-start` available for explicit control.
+
+This proves the MeshCore side now has a minimal continuous event-loop spine. It is still a skeleton: it does not yet persist queues, reconnect after device disconnects, expose a long-running service wrapper, or connect to a real bitchat-side adapter.
