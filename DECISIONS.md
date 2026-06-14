@@ -18,9 +18,14 @@ Decision: Use MeshCore companion channel data datagrams first: companion command
 
 Rationale: The path is already exposed by MeshCore's companion protocol, carries opaque binary payloads, and avoids invasive firmware protocol changes for the first MVP tunnel. The companion payload limit is 163 bytes, so bridge v0 budgets for a 141-byte fragment body after 22 bytes of bridge overhead.
 
+## D004 — First live adapter path
+
+Decision: Use a transport-neutral companion-datagram seam, implement serial first when hardware is available, then BLE second.
+
+Rationale: The local simulator already proves command/notification bytes. Serial is the lowest-friction first hardware path from a Linux/USB environment and avoids BLE scan/pairing/MTU issues during initial bring-up. BLE remains important for later mobile/bitchat-adjacent integration.
+
 ## Pending decisions
 
-- Client interface priority after codec: serial first, BLE first, or both.
 - Test hardware: which MeshCore-supported boards.
 - MVP security: plaintext lab-only vs bridge-level test encryption.
 - Long-term app namespace: register a `data_type` instead of using development `0xFFFF`.

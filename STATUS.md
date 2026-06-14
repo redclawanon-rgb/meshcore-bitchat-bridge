@@ -23,6 +23,8 @@ Local-first development is underway. Bridge frame v0 is locked, local codec is i
 - Simulator demo CLI implemented at `tools/bridge_sim.py`.
 - Simulator tests implemented at `tests/test_bridge_sim.py`.
 - Simulator CLI tests implemented at `tests/test_bridge_sim_cli.py`.
+- Adapter path decision documented at `ADAPTER.md`.
+- Decision `D004` added: transport-neutral seam, serial first, BLE second.
 - Verification commands passed:
 
 ```text
@@ -40,16 +42,17 @@ Eric approved continuing local implementation to the project's logical MVP concl
 
 ## Current milestone
 
-MVP-09 complete: no-hardware simulator demo CLI.
+MVP-10 complete: serial/BLE/hardware adapter path decision documented.
 
 ## Next recommended loop
 
-MVP-10: serial/BLE/hardware path decision and adapter seam design:
+MVP-11: transport interface + fake transport harness:
 
-- inspect MeshCore companion protocol connection options and existing client examples;
-- decide whether first live adapter should be serial, BLE, or both;
-- document the adapter interface that consumes/produces the same command/notification bytes the simulator already uses;
-- keep hardware purchase/flashing gated until Eric approves hardware.
+- create `tools/bridge_frame_codec/transport.py`;
+- create `tests/test_bridge_transport.py`;
+- define an async-ish or simple testable interface around companion command/notification bytes;
+- prove send/receive through fake transport using existing simulator byte path;
+- keep real hardware access gated.
 
 ## Blockers
 

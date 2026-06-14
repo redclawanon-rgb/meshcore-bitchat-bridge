@@ -17,6 +17,7 @@ Build an MVP bridge that can carry bitchat-like text messages over MeshCore/LoRa
 - `LOOPS.md` — development loop protocol
 - `STATUS.md` — current state and next action
 - `DECISIONS.md` — decisions and pending gates
+- `ADAPTER.md` — live transport adapter decision/seam
 - `evidence/meshcore-payload-budget.md` — MeshCore payload budget evidence
 - `tools/bridge_frame_codec/` — local Python bridge-frame/message/MeshCore companion codec
 - `tools/bridge_cli.py` — local encode/decode CLI harness
@@ -63,6 +64,8 @@ Use MeshCore companion channel data datagrams first:
 - max v0 fragment body: 141 bytes
 - CRC: CRC-16/XMODEM stored little-endian
 
+Use a transport-neutral companion-datagram seam for live adapters. First live adapter target is serial, then BLE. Details are in `ADAPTER.md`.
+
 ## Verification command
 
 ```bash
@@ -79,4 +82,4 @@ Do not handle raw secrets in project files.
 
 ## Next action
 
-Run MVP-10: serial/BLE/hardware path decision and adapter seam design. Inspect MeshCore companion connection options/examples, pick the first live adapter path, and document an adapter interface that consumes/produces the same command/notification bytes already proven by the simulator.
+Run MVP-11: add `tools/bridge_frame_codec/transport.py` and `tests/test_bridge_transport.py`, defining a fake transport interface around the same command/notification bytes that the simulator already proves.
