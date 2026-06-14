@@ -28,7 +28,7 @@ Build an MVP bridge that can carry bitchat-like text messages over MeshCore/LoRa
 - `docs/pre-hardware-readiness.md` — local pre-hardware readiness/operator handoff mapping demos, smoke fixture checks, and `HARDWARE_SMOKE.md`
 - `docs/mvp-handoff-index.md` — local MVP handoff/release-readiness index cross-linking protocol, adapter decisions, no-hardware demos, regression fixture, readiness handoff, blockers, and non-claims
 - `docs/gated-next-loops.md` — local post-MVP gate playbook map; no gate is active unless Eric explicitly picks one
-- `docs/public-release-preflight.md` — Gate 1 local-only public release hygiene checklist with readiness, exact pre-push commands, target details still needed, non-claim wording checklist, stop criteria, and no-public-action status
+- `docs/public-release-preflight.md` — Gate 1 public release hygiene checklist with readiness, exact pre-push commands, non-claim wording checklist, stop criteria, and publication record
 - `README.md` — includes no-hardware demo CLI/smoke usage notes and safety/compatibility boundaries
 - `evidence/meshcore-payload-budget.md` — MeshCore payload budget evidence
 - `tools/bridge_frame_codec/` — local Python bridge-frame/message/MeshCore companion codec
@@ -97,10 +97,9 @@ Latest verified result: `python3 -m unittest discover -s tests -v` ran 59 tests 
 
 ## Approval boundaries
 
-Eric approved taking this project locally to its logical conclusion: continue local implementation, tests, docs, and commits through the MVP path without asking before each bounded loop.
-Do not push public repos, post publicly, buy/order hardware, access secrets, or claim production security without separate explicit approval.
+Eric approved taking this project locally to its logical conclusion and approved Gate 1 source-only publication to `redclawanon-rgb/meshcore-bitchat-bridge`; the repo is public at <https://github.com/redclawanon-rgb/meshcore-bitchat-bridge>. Future public posts/releases/tags, hardware purchase/use, real serial/BLE access, secrets, production/security claims, or stock compatibility work still require separate explicit approval.
 Do not handle raw secrets in project files.
 
 ## Next action
 
-MVP-24 is complete, `docs/gated-next-loops.md` maps post-MVP gates, and `docs/public-release-preflight.md` records Gate 1 local release hygiene. Natural local-docs/code conclusion reached for the current no-hardware MVP handoff and local public preflight. No public side effects are authorized yet: target owner/repo name/visibility/license/settings remain required before repo creation, remote setup, push, tag, release, or public post. No gated path is active unless Eric explicitly picks one.
+Gate 1 source-only public publication is complete at <https://github.com/redclawanon-rgb/meshcore-bitchat-bridge>. Repo settings verified: public, default branch `main`, MIT license, issues enabled, wiki/discussions disabled. Remaining gated choices: hardware smoke, real serial adapter smoke, BLE exploration, scoped stock bitchat compatibility research, or production/security review last. No tags/releases/public announcements have been created.

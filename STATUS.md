@@ -80,15 +80,14 @@ Eric approved continuing local implementation to the project's logical MVP concl
 
 ## Current milestone
 
-Post-MVP gate map complete, and Gate 1 local-only release hygiene preflight is documented in `docs/public-release-preflight.md`. The boundary remains local-only: no serial/BLE/hardware/network/secrets/stock bitchat integration, no public repo creation/remote/push/tag/release/post, no production/security claims, and no cron/nudge/autoloop behavior. Public side effects remain blocked until Eric provides and approves the target owner/repo/visibility/license/settings and exact public action.
+Post-MVP gate map complete, Gate 1 local release hygiene preflight is documented in `docs/public-release-preflight.md`, and the public source repository has been created and pushed at <https://github.com/redclawanon-rgb/meshcore-bitchat-bridge>. Repo settings verified: public visibility, default branch `main`, issues enabled, wiki disabled, discussions disabled, MIT license detected, no release/tag/public announcement created.
 
 ## Next recommended loop / gate
 
-Natural local-docs/code conclusion reached for the current no-hardware MVP handoff plus local public release preflight. The next step is a real public or live gate, not another autonomous local loop: stop unless Eric explicitly approves one of the gated paths mapped in `docs/gated-next-loops.md` and, for public side effects, provides the target details listed in `docs/public-release-preflight.md`. Recommended order: approve exact public repo target/settings if publication is desired, hardware smoke, real serial adapter smoke, BLE exploration, stock bitchat compatibility research, and production/security review last.
+Gate 1 publication is complete for source-only repo creation/push. Remaining gated choices are: hardware smoke, real serial adapter smoke, BLE exploration, scoped stock bitchat compatibility research, or production/security review last. Tags/releases/public announcements are still not created unless separately requested.
 
 ## Blockers
 
 - Hardware availability not confirmed.
 - Target boards not chosen.
-- GitHub remote not created.
 - Real stock bitchat integration remains unscoped and unclaimed; future work needs version-pinned upstream API/conformance decisions.

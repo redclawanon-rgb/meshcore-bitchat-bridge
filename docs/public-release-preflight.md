@@ -123,4 +123,18 @@ Stop before any public side effect if any of these are true:
 
 ## Public action performed
 
-None. This Gate 1 pass is local-only. No public repository was created, no remote was added, no push/tag/release/package publish was performed, and no public post was made.
+Gate 1 source-only publication was approved by Eric and completed after this preflight.
+
+- Repository: <https://github.com/redclawanon-rgb/meshcore-bitchat-bridge>
+- Visibility: public
+- Default branch: `main`
+- Remote: `origin` -> `https://github.com/redclawanon-rgb/meshcore-bitchat-bridge.git`
+- License: MIT, tracked in `LICENSE` and detected by GitHub
+- Issues: enabled
+- Wiki: disabled
+- Discussions: disabled
+- Tags/releases: none created
+- Package artifacts: none published
+- Public announcement/post: none made
+
+Future public tags/releases/posts or settings changes remain separate gated actions.
