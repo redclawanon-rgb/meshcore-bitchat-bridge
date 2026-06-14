@@ -30,6 +30,12 @@ Decision: Keep the bitchat-side MVP adapter semantic and text-only: decoded brid
 
 Rationale: Public bitchat source shows an app-level `Transport` protocol and BLE implementation that construct/sign/encode public `BitchatPacket` values internally before CoreBluetooth writes, then deliver inbound public text as typed transport/delegate events after packet validation. A local semantic seam lets this bridge prove the MeshCore/text handoff without taking ownership of bitchat signatures, Noise sessions, peer identity, BLE fragmentation, app lifecycle, or interoperability claims.
 
+## D006 — post-daemon bitchat adapter path
+
+Decision: After Gate 2H, do scoped upstream-aware bitchat adapter work before any live stock-BLE interoperability attempt. The next technical gate should be version-pinned packet conformance fixtures and tests, not a Python daemon pretending to be a stock bitchat BLE peer.
+
+Rationale: Gate 4 research pinned current iOS and Android upstream sources and found that public text is semantic UTF-8 inside `MESSAGE` packets only after upstream identity, signing, peer verification, dedup, BLE fragmentation/backpressure, and app lifecycle behavior are handled. The iOS app has a useful in-app `Transport` abstraction; Android has clear public send/receive paths but is GPL-3.0. Neither exposes a stable external daemon API. A fixture-first loop can test packet assumptions while preserving the existing no-BLE/no-stock-claim boundary.
+
 ## Pending decisions
 
 - Test hardware: which MeshCore-supported boards.
