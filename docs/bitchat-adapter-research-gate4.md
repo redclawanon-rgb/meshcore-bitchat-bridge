@@ -346,6 +346,96 @@ Exit criteria:
 - `BITCHAT_SEAM.md` / docs clearly state fixtures are for research and compatibility planning only.
 - No live BLE, no mobile app, no production/security claim.
 
+## Gate 4A result: packet fixture subset implemented
+
+Gate 4A added a small local fixture module:
+
+- `tools/bridge_frame_codec/bitchat_packet_fixture.py`
+
+It intentionally implements only raw, unpadded v1 public-message fixture handling:
+
+- v1 header fields:
+  - `version`
+  - `type`
+  - `ttl`
+  - `timestamp_ms`
+  - `flags`
+  - uint16 payload length
+- fixed 8-byte sender ID
+- optional 8-byte recipient ID
+- UTF-8 payload bytes
+- optional 64-byte signature preservation and length validation only
+
+It explicitly does **not** implement:
+
+- BLE scanning/connection
+- padding
+- compression
+- fragmentation
+- signing
+- signature verification
+- Noise sessions
+- peer verification
+- stock bitchat interoperability
+
+Tests added:
+
+- `tests/test_bitchat_packet_fixture.py`
+
+Deterministic fixture bytes pinned by tests:
+
+### iOS-observed public message shape: no recipient ID
+
+Input fields:
+
+- sender ID: `0102030405060708`
+- timestamp: `0x0000018F3D2A1B00`
+- ttl: `7`
+- type: `0x02`
+- text: `gate4a fixture`
+- recipient: absent
+
+Expected raw fixture hex:
+
+```text
+0102070000018f3d2a1b0000000e01020304050607086761746534612066697874757265
+```
+
+### Android-observed public message shape: broadcast recipient ID
+
+Input fields:
+
+- sender ID: `0102030405060708`
+- timestamp: `0x0000018F3D2A1B00`
+- ttl: `7`
+- type: `0x02`
+- text: `gate4a fixture`
+- recipient: `ffffffffffffffff`
+
+Expected raw fixture hex:
+
+```text
+0102070000018f3d2a1b0001000e0102030405060708ffffffffffffffff6761746534612066697874757265
+```
+
+### Signature-present length fixture
+
+Signature-present tests preserve 64 signature bytes and reject non-64-byte signatures. This is only a structural fixture check; it is not crypto validation.
+
+Verification result:
+
+```text
+python3 -m unittest tests.test_bitchat_packet_fixture -v
+Ran 4 tests in 0.001s
+OK
+
+python3 -m unittest discover -s tests -v
+Ran 69 tests in 0.339s
+OK
+```
+
+Gate 4A confirms that the project now has deterministic, version-pinned packet fixture coverage for the two public-message shapes observed upstream, while preserving the no-BLE/no-stock-compatibility boundary.
+
 ## Decision from this gate
 
 Keep the bridge's operational path as:

@@ -1,5 +1,16 @@
 """Bridge frame v0 codec for MeshCore ↔ bitchat bridge MVP."""
 
+from .bitchat_packet_fixture import (
+    BITCHAT_MESSAGE_TYPE_MESSAGE,
+    BITCHAT_PACKET_VERSION_V1,
+    BITCHAT_RECIPIENT_BROADCAST,
+    BITCHAT_SIGNATURE_SIZE,
+    BitchatPacketFixture,
+    BitchatPacketFixtureError,
+    decode_raw_v1_packet_fixture,
+    make_android_public_message_fixture,
+    make_ios_public_message_fixture,
+)
 from .bitchat_text import (
     BitchatOutboundText,
     BitchatPublishedText,
@@ -51,6 +62,15 @@ from .transport import (
 )
 
 __all__ = [
+    "BITCHAT_MESSAGE_TYPE_MESSAGE",
+    "BITCHAT_PACKET_VERSION_V1",
+    "BITCHAT_RECIPIENT_BROADCAST",
+    "BITCHAT_SIGNATURE_SIZE",
+    "BitchatPacketFixture",
+    "BitchatPacketFixtureError",
+    "decode_raw_v1_packet_fixture",
+    "make_android_public_message_fixture",
+    "make_ios_public_message_fixture",
     "BitchatOutboundText",
     "BitchatPublishedText",
     "BitchatTextCarrier",

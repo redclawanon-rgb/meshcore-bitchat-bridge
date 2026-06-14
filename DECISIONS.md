@@ -36,6 +36,12 @@ Decision: After Gate 2H, do scoped upstream-aware bitchat adapter work before an
 
 Rationale: Gate 4 research pinned current iOS and Android upstream sources and found that public text is semantic UTF-8 inside `MESSAGE` packets only after upstream identity, signing, peer verification, dedup, BLE fragmentation/backpressure, and app lifecycle behavior are handled. The iOS app has a useful in-app `Transport` abstraction; Android has clear public send/receive paths but is GPL-3.0. Neither exposes a stable external daemon API. A fixture-first loop can test packet assumptions while preserving the existing no-BLE/no-stock-claim boundary.
 
+## D007 — Gate 4A packet fixture boundary
+
+Decision: The local `bitchat_packet_fixture` module is a research/conformance fixture subset only: raw unpadded v1 public `MESSAGE` packet field encoding/decoding, iOS-style no-recipient and Android-style broadcast-recipient shapes, and structural 64-byte signature length handling. It must not be used as a stock-bitchat BLE adapter or treated as crypto validation.
+
+Rationale: Gate 4A gives deterministic packet bytes for planning and regression tests while preserving the no-BLE/no-stock-compatibility boundary. Padding, compression, fragmentation, signing, signature verification, Noise, peer verification, app lifecycle, and BLE behavior remain separate future gates.
+
 ## Pending decisions
 
 - Test hardware: which MeshCore-supported boards.
