@@ -21,8 +21,10 @@ Build an MVP bridge that can carry bitchat-like text messages over MeshCore/LoRa
 - `evidence/meshcore-payload-budget.md` — MeshCore payload budget evidence
 - `tools/bridge_frame_codec/` — local Python bridge-frame/message/MeshCore companion codec
 - `tools/bridge_frame_codec/transport.py` — transport-neutral companion datagram seam + fake transport
+- `tools/bridge_frame_codec/serial_adapter.py` — no-hardware MeshCore serial packet wrapper/parser
 - `tools/bridge_cli.py` — local encode/decode CLI harness
 - `tools/bridge_sim.py` — no-hardware simulator demo CLI
+- `tools/bridge_serial.py` — serial dry-run CLI, no port opened
 - `tests/test_bridge_frame_codec.py` — frame codec/unit tests
 - `tests/test_bridge_message.py` — text message helper tests
 - `tests/test_bridge_cli.py` — local CLI tests
@@ -74,7 +76,7 @@ Use a transport-neutral companion-datagram seam for live adapters. First live ad
 python3 -m unittest discover -s tests -v
 ```
 
-Latest verified result: 36 tests passed; simulator CLI smoke delivered one alice → bob message.
+Latest verified result: 42 tests passed; serial dry-run emitted one no-port-opened packet.
 
 ## Approval boundaries
 
@@ -84,4 +86,4 @@ Do not handle raw secrets in project files.
 
 ## Next action
 
-Run MVP-12: add a no-hardware serial adapter scaffold with exact MeshCore serial packet wrapper/unwrapper tests and dry-run bytes, keeping real serial port access gated on confirmed hardware/port.
+Run MVP-13: add `SerialCompanionDatagramTransport` skeleton behind an explicit no-open default. Tests must use fake byte streams/transports only; any real serial port access must require an explicit `--open-real-port` style gate.

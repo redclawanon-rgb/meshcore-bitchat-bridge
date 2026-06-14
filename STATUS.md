@@ -2,7 +2,7 @@
 
 ## Current state
 
-Local-first development is underway. Bridge frame v0 is locked, local codec is implemented, message-level UTF-8 text fragmentation/reassembly helpers are implemented, a local CLI harness can encode/decode frames without hardware, MeshCore companion channel-data command/notification wrappers are implemented locally, a no-hardware two-node simulator proves end-to-end text exchange over the local stack, a simulator demo CLI prints deterministic A ↔ B exchange summaries, and a transport-neutral companion datagram seam now has a fake transport harness.
+Local-first development is underway. Bridge frame v0 is locked, local codec is implemented, message-level UTF-8 text fragmentation/reassembly helpers are implemented, a local CLI harness can encode/decode frames without hardware, MeshCore companion channel-data command/notification wrappers are implemented locally, a no-hardware two-node simulator proves end-to-end text exchange over the local stack, a simulator demo CLI prints deterministic A ↔ B exchange summaries, a transport-neutral companion datagram seam has a fake transport harness, and a no-hardware serial adapter scaffold/dry-run CLI now emits exact MeshCore serial packet bytes.
 
 ## Verified
 
@@ -27,14 +27,20 @@ Local-first development is underway. Bridge frame v0 is locked, local codec is i
 - Decision `D004` added: transport-neutral seam, serial first, BLE second.
 - Transport seam implemented at `tools/bridge_frame_codec/transport.py`.
 - Fake transport tests implemented at `tests/test_bridge_transport.py`.
+- Serial packet scaffold implemented at `tools/bridge_frame_codec/serial_adapter.py`.
+- Serial dry-run CLI implemented at `tools/bridge_serial.py`.
+- Serial adapter tests implemented at `tests/test_serial_adapter.py`.
 - Verification commands passed:
 
 ```text
 python3 tools/bridge_sim.py --one-way --alice-text 'smoke test over simulated MeshCore'
 # delivered one alice -> bob simulated message
 
+python3 tools/bridge_serial.py --port /dev/ttyUSB0 'serial smoke'
+# printed one dry-run serial packet, no port opened
+
 python3 -m unittest discover -s tests -v
-Ran 36 tests in 0.012s
+Ran 42 tests in 0.014s
 OK
 ```
 
@@ -44,16 +50,16 @@ Eric approved continuing local implementation to the project's logical MVP concl
 
 ## Current milestone
 
-MVP-11 complete: transport interface + fake transport harness.
+MVP-12 complete: no-hardware serial adapter scaffold + dry-run CLI.
 
 ## Next recommended loop
 
-MVP-12: serial adapter scaffold, still safe without real hardware:
+MVP-13: real serial adapter implementation skeleton behind an explicit no-open default:
 
-- implement serial companion packet wrapper/unwrapper for `0x3c + uint16_le(size) + command`;
-- add tests for exact serial write bytes and inbound packet extraction;
-- add dry-run CLI output for a `/dev/ttyUSB0`-style send without opening a port;
-- keep real serial open/send gated on confirmed hardware/port.
+- define a `SerialCompanionDatagramTransport` class using the existing serial packet helpers;
+- keep constructor/import safe when serial dependencies are absent;
+- add tests with a fake byte stream/transport, not a real port;
+- add CLI guard requiring `--open-real-port` before any real serial access.
 
 ## Blockers
 

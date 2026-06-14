@@ -24,6 +24,14 @@ from .meshcore_companion import (
     build_channel_data_command,
     parse_channel_data_recv,
 )
+from .serial_adapter import (
+    MAX_SERIAL_PAYLOAD,
+    SERIAL_RX_START,
+    SERIAL_TX_START,
+    SerialRxPacketReader,
+    wrap_serial_rx_packet,
+    wrap_serial_tx_packet,
+)
 from .sim import DeliveredText, SimulatedBridgeNode, SimulatedMeshCoreLink
 from .transport import (
     CompanionDatagramTransport,
@@ -60,6 +68,12 @@ __all__ = [
     "SimulatedMeshCoreLink",
     "CompanionDatagramTransport",
     "FakeCompanionDatagramTransport",
+    "MAX_SERIAL_PAYLOAD",
+    "SERIAL_RX_START",
+    "SERIAL_TX_START",
+    "SerialRxPacketReader",
     "drain_transport_to_node",
     "send_text_over_transport",
+    "wrap_serial_rx_packet",
+    "wrap_serial_tx_packet",
 ]
