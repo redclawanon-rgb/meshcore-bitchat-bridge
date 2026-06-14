@@ -2,7 +2,7 @@
 
 ## Current state
 
-Local-first development is underway. Bridge frame v0 is locked, local codec is implemented, message-level UTF-8 text fragmentation/reassembly helpers are implemented, a local CLI harness can encode/decode frames without hardware, MeshCore companion channel-data command/notification wrappers are implemented locally, a no-hardware two-node simulator proves end-to-end text exchange over the local stack, a simulator demo CLI prints deterministic A ↔ B exchange summaries, a transport-neutral companion datagram seam has a fake transport harness, and a no-hardware serial adapter scaffold/dry-run CLI now emits exact MeshCore serial packet bytes.
+Local-first development is underway. Bridge frame v0 is locked, local codec is implemented, message-level UTF-8 text fragmentation/reassembly helpers are implemented, a local CLI harness can encode/decode frames without hardware, MeshCore companion channel-data command/notification wrappers are implemented locally, a no-hardware two-node simulator proves end-to-end text exchange over the local stack, a simulator demo CLI prints deterministic A ↔ B exchange summaries, a transport-neutral companion datagram seam has a fake transport harness, a no-hardware serial adapter scaffold/dry-run CLI emits exact MeshCore serial packet bytes, and a serial companion datagram transport skeleton is available behind an explicit no-open default.
 
 ## Verified
 
@@ -28,7 +28,9 @@ Local-first development is underway. Bridge frame v0 is locked, local codec is i
 - Transport seam implemented at `tools/bridge_frame_codec/transport.py`.
 - Fake transport tests implemented at `tests/test_bridge_transport.py`.
 - Serial packet scaffold implemented at `tools/bridge_frame_codec/serial_adapter.py`.
+- `SerialCompanionDatagramTransport` skeleton implemented with default no-open behavior and fake byte-stream test coverage.
 - Serial dry-run CLI implemented at `tools/bridge_serial.py`.
+- Serial CLI real-port path now requires explicit `--open-real-port`; dry-run remains no-open by default.
 - Serial adapter tests implemented at `tests/test_serial_adapter.py`.
 - Verification commands passed:
 
@@ -40,7 +42,7 @@ python3 tools/bridge_serial.py --port /dev/ttyUSB0 'serial smoke'
 # printed one dry-run serial packet, no port opened
 
 python3 -m unittest discover -s tests -v
-Ran 42 tests in 0.014s
+Ran 45 tests in 0.012s
 OK
 ```
 
@@ -50,16 +52,11 @@ Eric approved continuing local implementation to the project's logical MVP concl
 
 ## Current milestone
 
-MVP-12 complete: no-hardware serial adapter scaffold + dry-run CLI.
+MVP-13 complete: serial companion datagram transport skeleton behind explicit no-open default.
 
 ## Next recommended loop
 
-MVP-13: real serial adapter implementation skeleton behind an explicit no-open default:
-
-- define a `SerialCompanionDatagramTransport` class using the existing serial packet helpers;
-- keep constructor/import safe when serial dependencies are absent;
-- add tests with a fake byte stream/transport, not a real port;
-- add CLI guard requiring `--open-real-port` before any real serial access.
+MVP-14: exercise the serial transport skeleton through the transport-neutral bridge path with fake streams, then plan the first gated hardware smoke checklist.
 
 ## Blockers
 

@@ -14,16 +14,27 @@ from typing import Sequence
 
 try:
     from bridge_frame_codec import SimulatedBridgeNode
-    from bridge_frame_codec.serial_adapter import wrap_serial_tx_packet
+    from bridge_frame_codec.serial_adapter import (
+        SerialCompanionDatagramTransport,
+        wrap_serial_tx_packet,
+    )
 except ModuleNotFoundError:  # imported as tools.bridge_serial from tests
     from tools.bridge_frame_codec import SimulatedBridgeNode
-    from tools.bridge_frame_codec.serial_adapter import wrap_serial_tx_packet
+    from tools.bridge_frame_codec.serial_adapter import (
+        SerialCompanionDatagramTransport,
+        wrap_serial_tx_packet,
+    )
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="MeshCore bridge serial dry-run")
     parser.add_argument("--port", default="/dev/ttyUSB0", help="shown only; not opened")
     parser.add_argument("--baud", type=int, default=115200, help="shown only; not opened")
+    parser.add_argument(
+        "--open-real-port",
+        action="store_true",
+        help="explicitly open --port and write the encoded packets (default: no-open dry-run)",
+    )
     parser.add_argument("--bridge-id", default="0x000000a1", help="decimal or 0x-prefixed uint32")
     parser.add_argument("--channel", type=int, default=1, help="MeshCore channel index")
     parser.add_argument("text", help="UTF-8 text to encode for serial dry-run")
@@ -34,9 +45,17 @@ def run(args: argparse.Namespace) -> dict[str, object]:
     node = SimulatedBridgeNode(bridge_id=int(args.bridge_id, 0), channel_index=args.channel)
     commands = node.make_text_commands(args.text)
     packets = [wrap_serial_tx_packet(command) for command in commands]
+    if args.open_real_port:
+        transport = SerialCompanionDatagramTransport(
+            port=args.port,
+            baud=args.baud,
+            open_real_port=True,
+        )
+        for command in commands:
+            transport.send_channel_data_command(command)
     return {
         "type": "meshcore_bitchat_bridge_serial_dry_run_v0",
-        "mode": "dry-run-no-port-opened",
+        "mode": "real-port-opened" if args.open_real_port else "dry-run-no-port-opened",
         "port": args.port,
         "baud": args.baud,
         "channel_index": args.channel,

@@ -14,12 +14,26 @@ This module keeps that byte-level logic testable without opening a serial port.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from importlib import import_module
+from typing import Protocol
 
 from .bridge_frame import BridgeFrameError
 
 SERIAL_TX_START = 0x3C
 SERIAL_RX_START = 0x3E
 MAX_SERIAL_PAYLOAD = 300
+
+
+class SerialByteStream(Protocol):
+    """Small serial-like byte stream seam used by the transport skeleton."""
+
+    def write(self, data: bytes) -> object:
+        """Write bytes to the underlying stream."""
+        ...
+
+    def read(self, size: int = 1) -> bytes:
+        """Read up to size bytes from the underlying stream."""
+        ...
 
 
 def wrap_serial_tx_packet(command: bytes) -> bytes:
@@ -73,3 +87,65 @@ class SerialRxPacketReader:
                 return packets
             packets.append(bytes(self.buffer[3:total]))
             del self.buffer[:total]
+
+
+@dataclass(slots=True)
+class SerialCompanionDatagramTransport:
+    """Serial implementation skeleton for the companion datagram seam.
+
+    The default constructor is intentionally no-open: importing or instantiating
+    this class does not import pyserial and does not touch a real port. Tests and
+    dry-runs can pass a fake serial-like ``byte_stream`` with ``read``/``write``.
+    Opening a real port requires ``open_real_port=True``.
+    """
+
+    port: str = "/dev/ttyUSB0"
+    baud: int = 115200
+    open_real_port: bool = False
+    byte_stream: SerialByteStream | None = None
+    serial_factory: object | None = None
+    read_size: int = 1024
+    rx_reader: SerialRxPacketReader = field(default_factory=SerialRxPacketReader)
+    sent_packets: list[bytes] = field(default_factory=list)
+    queued_notifications: list[bytes] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        if self.byte_stream is not None:
+            return
+        if not self.open_real_port:
+            return
+
+        factory = self.serial_factory
+        if factory is None:
+            try:
+                factory = import_module("serial").Serial
+            except ModuleNotFoundError as exc:  # pragma: no cover - env dependent
+                raise RuntimeError(
+                    "pyserial is required to open a real serial port; install it "
+                    "or instantiate with open_real_port=False/fake byte_stream"
+                ) from exc
+        self.byte_stream = factory(self.port, self.baud, timeout=0)  # type: ignore[misc, operator]
+
+    def send_channel_data_command(self, command: bytes) -> None:
+        """Wrap and send one companion command as a MeshCore serial TX packet."""
+        packet = wrap_serial_tx_packet(command)
+        self.sent_packets.append(packet)
+        if self.byte_stream is not None:
+            self.byte_stream.write(packet)
+
+    def recv_channel_data_notification(self) -> bytes | None:
+        """Read and unwrap one companion notification if a complete packet exists."""
+        if self.queued_notifications:
+            return self.queued_notifications.pop(0)
+        if self.byte_stream is not None:
+            chunk = self.byte_stream.read(self.read_size)
+            if chunk:
+                packets = self.rx_reader.feed(chunk)
+                if packets:
+                    self.queued_notifications.extend(packets[1:])
+                    return packets[0]
+        packets = self.rx_reader.feed(b"")
+        if not packets:
+            return None
+        self.queued_notifications.extend(packets[1:])
+        return packets[0]

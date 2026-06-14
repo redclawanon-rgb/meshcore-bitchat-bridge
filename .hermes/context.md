@@ -21,10 +21,10 @@ Build an MVP bridge that can carry bitchat-like text messages over MeshCore/LoRa
 - `evidence/meshcore-payload-budget.md` — MeshCore payload budget evidence
 - `tools/bridge_frame_codec/` — local Python bridge-frame/message/MeshCore companion codec
 - `tools/bridge_frame_codec/transport.py` — transport-neutral companion datagram seam + fake transport
-- `tools/bridge_frame_codec/serial_adapter.py` — no-hardware MeshCore serial packet wrapper/parser
+- `tools/bridge_frame_codec/serial_adapter.py` — no-hardware MeshCore serial packet wrapper/parser + no-open serial transport skeleton
 - `tools/bridge_cli.py` — local encode/decode CLI harness
 - `tools/bridge_sim.py` — no-hardware simulator demo CLI
-- `tools/bridge_serial.py` — serial dry-run CLI, no port opened
+- `tools/bridge_serial.py` — serial dry-run CLI, no port opened unless explicit `--open-real-port`
 - `tests/test_bridge_frame_codec.py` — frame codec/unit tests
 - `tests/test_bridge_message.py` — text message helper tests
 - `tests/test_bridge_cli.py` — local CLI tests
@@ -76,7 +76,7 @@ Use a transport-neutral companion-datagram seam for live adapters. First live ad
 python3 -m unittest discover -s tests -v
 ```
 
-Latest verified result: 42 tests passed; serial dry-run emitted one no-port-opened packet.
+Latest verified result: 45 tests passed; serial transport skeleton covered with fake byte streams only; serial dry-run still emits one no-port-opened packet by default.
 
 ## Approval boundaries
 
@@ -86,4 +86,4 @@ Do not handle raw secrets in project files.
 
 ## Next action
 
-Run MVP-13: add `SerialCompanionDatagramTransport` skeleton behind an explicit no-open default. Tests must use fake byte streams/transports only; any real serial port access must require an explicit `--open-real-port` style gate.
+Run MVP-14: exercise `SerialCompanionDatagramTransport` through the transport-neutral bridge path using fake streams only, then draft the gated hardware smoke checklist. Any real serial access still requires explicit `--open-real-port`/`open_real_port=True` approval and invocation.
