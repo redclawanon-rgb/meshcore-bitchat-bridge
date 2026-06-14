@@ -90,6 +90,7 @@ Developer regression fixture:
 - See `docs/pre-hardware-readiness.md` for the local operator handoff that maps these demos, the stable fixture checks, and the gated `HARDWARE_SMOKE.md` checklist before any future hardware smoke.
 - See `docs/mvp-handoff-index.md` for the local MVP handoff/release-readiness index that cross-links protocol, adapter decisions, no-hardware demos, regression fixtures, pre-hardware readiness, blockers, and non-claims.
 - See `docs/gated-next-loops.md` for the post-MVP gate playbooks. No gated path is active unless Eric explicitly picks one.
+- See `docs/public-release-preflight.md` for the local-only public release hygiene checklist, target details still needed, non-claim wording checklist, and stop criteria. No public repository, remote, push, tag, release, or public post has been performed.
 
 ### Safety and compatibility boundaries
 

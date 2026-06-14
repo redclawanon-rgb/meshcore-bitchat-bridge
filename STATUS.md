@@ -53,6 +53,7 @@ Local-first development is underway. Bridge frame v0 is locked, local codec is i
 - MVP-23 local pre-hardware readiness/operator handoff note added at `docs/pre-hardware-readiness.md`, mapping the no-hardware demo CLIs, smoke transcript fixture/check commands, and gated `HARDWARE_SMOKE.md` checklist into an exact sequence before any future hardware use.
 - MVP-24 local MVP handoff/release-readiness index added at `docs/mvp-handoff-index.md`, cross-linking `PROTOCOL.md`, adapter decisions, no-hardware demos, the smoke regression fixture/note, pre-hardware readiness, `HARDWARE_SMOKE.md`, current blockers, and non-claims without opening serial/BLE/hardware/network paths or adding automation.
 - Post-MVP gated next-loop playbook added at `docs/gated-next-loops.md`, mapping trigger/authorization, preflight checks, bounded steps, verification/evidence, stop/rollback criteria, and likely affected files for public repo prep, hardware smoke, real serial adapter smoke, BLE exploration, stock bitchat compatibility research, secrets handling, and production/security review. No gated path is active unless Eric explicitly picks one.
+- Gate 1 local-only public release hygiene preflight added at `docs/public-release-preflight.md`, recording current readiness, exact pre-push commands, required target details still needed, non-claim wording checklist, stop criteria, and an explicit no-public-action-performed note. Public repository creation, remote setup, push, tag, release, package publish, issue/wiki/discussion settings, and public posting remain unperformed and gated.
 - Verification commands passed:
 
 ```text
@@ -69,7 +70,7 @@ python3 tools/no_hardware_smoke.py
 # ran the three documented demo CLIs locally and printed a stable no-hardware JSON transcript
 
 python3 -m unittest discover -s tests -v
-Ran 59 tests in 0.351s
+Ran 59 tests in 0.304s
 OK
 ```
 
@@ -79,11 +80,11 @@ Eric approved continuing local implementation to the project's logical MVP concl
 
 ## Current milestone
 
-Post-MVP gate map complete: `docs/gated-next-loops.md` now provides local playbooks for future gated paths. The boundary remains local-only: no serial/BLE/hardware/network/secrets/stock bitchat integration, no public push/post, no production/security claims, and no cron/nudge/autoloop behavior. No gated path is active unless Eric explicitly picks one.
+Post-MVP gate map complete, and Gate 1 local-only release hygiene preflight is documented in `docs/public-release-preflight.md`. The boundary remains local-only: no serial/BLE/hardware/network/secrets/stock bitchat integration, no public repo creation/remote/push/tag/release/post, no production/security claims, and no cron/nudge/autoloop behavior. Public side effects remain blocked until Eric provides and approves the target owner/repo/visibility/license/settings and exact public action.
 
 ## Next recommended loop / gate
 
-Natural local-docs/code conclusion reached for the current no-hardware MVP handoff. The next step is a real gate, not another autonomous local loop: stop unless Eric explicitly approves one of the gated paths mapped in `docs/gated-next-loops.md`. Recommended order: public repo prep/release hygiene if desired, hardware smoke, real serial adapter smoke, BLE exploration, stock bitchat compatibility research, and production/security review last.
+Natural local-docs/code conclusion reached for the current no-hardware MVP handoff plus local public release preflight. The next step is a real public or live gate, not another autonomous local loop: stop unless Eric explicitly approves one of the gated paths mapped in `docs/gated-next-loops.md` and, for public side effects, provides the target details listed in `docs/public-release-preflight.md`. Recommended order: approve exact public repo target/settings if publication is desired, hardware smoke, real serial adapter smoke, BLE exploration, stock bitchat compatibility research, and production/security review last.
 
 ## Blockers
 
