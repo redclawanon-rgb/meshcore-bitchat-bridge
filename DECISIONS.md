@@ -72,6 +72,12 @@ Decision: The next bitchat-side integration layer should be an app-native adapte
 
 Rationale: Gate 5A defines `BitchatAppAdapter` and `LocalFixtureBitchatAppAdapter` as the seam between fixture-proven packet behavior and future Android/iOS integration. This keeps the Python bridge architecture clean while avoiding a false stock-BLE compatibility claim. Live Android/iOS insertion points remain future gates.
 
+## D013 — Gate 5B adapter-backed pump boundary
+
+Decision: The local bridge pump may use the app-native adapter contract through `pump_app_adapter_bridge_once(...)`: MeshCore-delivered text is published to `BitchatAppAdapter.publish_bridge_text(...)`, while fixture-backed app packet bytes are ingested through `BitchatAppAdapter.ingest_packet_bytes(...)` and emitted public-text events are forwarded over the existing MeshCore transport-neutral send path.
+
+Rationale: This connects the Gate 5A app adapter seam to the actual bridge loop while preserving the no-hardware/no-BLE/no-stock-compatibility boundary. The older semantic-carrier pump remains for simpler fake-carrier tests. Android/iOS insertion points are still future design/spike work.
+
 ## Pending decisions
 
 - Test hardware: which MeshCore-supported boards.

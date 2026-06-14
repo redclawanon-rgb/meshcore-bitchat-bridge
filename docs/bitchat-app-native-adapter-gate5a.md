@@ -156,11 +156,57 @@ Gate 5A does not implement or prove:
 
 It only defines and tests a local app-native adapter contract using deterministic fixture bytes.
 
+## Gate 5B result — adapter-backed no-hardware bridge pump
+
+Gate 5B integrated the app-adapter seam into the local bridge pump without removing the older semantic-carrier pump.
+
+Implemented in:
+
+```text
+tools/bridge_frame_codec/bridge_pump.py
+```
+
+New exported types/functions:
+
+- `AppAdapterBridgePumpResult`
+- `pump_app_adapter_bridge_once(...)`
+
+The new pump pass moves data in three deterministic no-hardware steps:
+
+1. drain queued MeshCore companion notifications from the transport into the local bridge node;
+2. publish decoded `DeliveredText` into `BitchatAppAdapter.publish_bridge_text(...)`;
+3. ingest fixture-backed app/native packet bytes through `BitchatAppAdapter.ingest_packet_bytes(...)` and forward emitted public-text events through `send_text_over_transport(...)`.
+
+Implemented tests:
+
+```text
+tests/test_bitchat_app_adapter_pump.py
+```
+
+Coverage:
+
+- MeshCore-delivered text is published through the app-adapter seam;
+- a fixture-backed app public-message packet is forwarded to MeshCore transport;
+- a combined pass can publish MeshCore text to the adapter while reassembling and forwarding a routed fragmented v2 app event;
+- duplicate app packet bytes do not forward twice.
+
+Verification:
+
+```text
+python3 -m unittest tests.test_bitchat_app_adapter_pump -v
+Ran 4 tests in 0.001s
+OK
+```
+
+Gate 5B is still fixture-only. It does not open BLE, serial ports, mobile apps, hardware, or stock bitchat sessions.
+
 ## Recommended next gate
 
-Gate 5B should integrate this adapter seam with the existing bridge pump so the local pump can move:
+Gate 5C should map the app-adapter contract to Android/iOS insertion points as a design/spike gate:
 
-- MeshCore delivered text -> adapter `publish_bridge_text(...)`;
-- adapter public-text events -> MeshCore transport-neutral send path.
+- Android receive/send/fragment/dedup/trust callback points;
+- iOS `BitFoundation`/BLE receive/fragment/trust callback points;
+- event ownership boundaries for BLE, Noise, route planning, trust UI, lifecycle, and persistence;
+- minimal app-side API shape that could feed `BitchatAppAdapter` without making the MeshCore bridge own mobile internals.
 
-That should still be no-hardware and fixture-only. Live Android/iOS mapping should wait until the local adapter/pump seam is clean.
+Live Android/iOS integration should wait until Gate 5C identifies the least-invasive insertion point.
