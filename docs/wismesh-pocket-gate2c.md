@@ -198,3 +198,38 @@ Verified real-port output included:
 - `serial_len`: `57`
 
 This proves the Windows desktop opened `COM5` and wrote the encoded MeshCore companion packet. It does not yet prove over-LoRa delivery to another MeshCore node.
+
+Eric then plugged in the second WisMesh Pocket and reconnected the first. Both were mapped by stable USB serial:
+
+- `pocket-1`: `COM5`, `VID_239A:PID_8029`, serial `BAE292D6B7431B72`.
+- `pocket-2`: `COM8`, `VID_239A:PID_8029`, serial `99EF9E1DC9D17560`.
+
+Eric approved flashing `pocket-2` to MeshCore USB Companion. The same firmware package was used. Touching `COM8` at 1200 baud moved `pocket-2` into bootloader mode as `COM9`, `VID_239A:PID_002A`, serial `99EF9E1DC9D17560`. Flashing succeeded on `COM9`:
+
+```powershell
+python -m nordicsemi.__main__ dfu serial --package firmware/RAK_4631_companion_radio_usb-v1.16.0-07a3ca9.zip -p COM9 -b 115200 --singlebank
+```
+
+DFU result:
+
+```text
+Activating new firmware
+Device programmed.
+FLASH_EXIT=0
+```
+
+After reboot, both MeshCore-flashed Pockets were present:
+
+```text
+COM5 USB Serial Device VID_239A:PID_8029 SER=BAE292D6B7431B72
+COM8 USB Serial Device VID_239A:PID_8029 SER=99EF9E1DC9D17560
+```
+
+Post-flash read-only samples at 115200 opened both ports and read `0` bytes, i.e. no Meshtastic debug chatter from either unit.
+
+Real-port smoke succeeded on both ports:
+
+- `COM5`: `mode=real-port-opened`, `packet_count=1`, `text_bytes=32`, `serial_len=62`.
+- `COM8`: `mode=real-port-opened`, `packet_count=1`, `text_bytes=29`, `serial_len=59`.
+
+This proves both connected Pockets can be opened from the Windows desktop and can receive encoded MeshCore companion serial writes. It still does not prove over-LoRa delivery between nodes; that is the next gate.
