@@ -2,7 +2,7 @@
 
 ## Current state
 
-Local-first development is underway. Bridge frame v0 is locked, local codec is implemented, message-level UTF-8 text fragmentation/reassembly helpers are implemented, a local CLI harness can encode/decode frames without hardware, and MeshCore companion channel-data command/notification wrappers are implemented locally.
+Local-first development is underway. Bridge frame v0 is locked, local codec is implemented, message-level UTF-8 text fragmentation/reassembly helpers are implemented, a local CLI harness can encode/decode frames without hardware, MeshCore companion channel-data command/notification wrappers are implemented locally, and a no-hardware two-node simulator now proves end-to-end text exchange over the local stack.
 
 ## Verified
 
@@ -19,11 +19,13 @@ Local-first development is underway. Bridge frame v0 is locked, local codec is i
 - Text helpers implemented in `tools/bridge_frame_codec/message.py`.
 - Local CLI implemented at `tools/bridge_cli.py`.
 - MeshCore companion wrapper implemented at `tools/bridge_frame_codec/meshcore_companion.py`.
+- No-hardware two-node simulator implemented at `tools/bridge_frame_codec/sim.py`.
+- Simulator tests implemented at `tests/test_bridge_sim.py`.
 - Verification command passed:
 
 ```text
 python3 -m unittest discover -s tests -v
-Ran 25 tests in 0.006s
+Ran 31 tests in 0.007s
 OK
 ```
 
@@ -33,21 +35,19 @@ Eric approved continuing local implementation to the project's logical MVP concl
 
 ## Current milestone
 
-MVP-08: simulated end-to-end node harness.
+MVP-08 complete: simulated end-to-end node harness.
 
 ## Next recommended loop
 
-Create a no-hardware two-node simulator:
+MVP-09: add a small demo CLI for the simulator:
 
-- create `tools/bridge_frame_codec/sim.py`;
-- model two nodes with outbound MeshCore companion commands and inbound `RESP_CODE_CHANNEL_DATA_RECV` notifications;
-- support sending text A → B and B → A;
-- prove:
-  - one-frame text roundtrip;
-  - multi-frame text roundtrip;
-  - duplicate inbound notification is ignored or handled safely;
-  - corrupt frame is rejected;
-- optionally add `tools/bridge_sim.py` CLI for demo output.
+- create `tools/bridge_sim.py`;
+- allow A → B, B → A, and long-message demo runs;
+- print frame/command counts and delivered text summaries;
+- keep it no-hardware and deterministic;
+- verify with CLI tests or a smoke command.
+
+After that, continue toward MVP-10: serial/BLE/hardware path decision and adapter seam design.
 
 ## Blockers
 

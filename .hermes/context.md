@@ -24,6 +24,8 @@ Build an MVP bridge that can carry bitchat-like text messages over MeshCore/LoRa
 - `tests/test_bridge_message.py` — text message helper tests
 - `tests/test_bridge_cli.py` — local CLI tests
 - `tests/test_meshcore_companion.py` — MeshCore companion wrapper tests
+- `tools/bridge_frame_codec/sim.py` — no-hardware two-node simulator
+- `tests/test_bridge_sim.py` — simulator end-to-end tests
 - `tests/vectors/bridge-frame-v0.json` — canonical v0 test vector
 
 ## Current MVP scope
@@ -65,7 +67,7 @@ Use MeshCore companion channel data datagrams first:
 python3 -m unittest discover -s tests -v
 ```
 
-Latest verified result: 25 tests passed.
+Latest verified result: 31 tests passed.
 
 ## Approval boundaries
 
@@ -75,4 +77,4 @@ Do not handle raw secrets in project files.
 
 ## Next action
 
-Run MVP-08: add a no-hardware two-node simulator for end-to-end text exchange over bridge frames wrapped in MeshCore companion channel-data notifications.
+Run MVP-09: add a no-hardware simulator demo CLI that prints deterministic A ↔ B text exchange summaries and frame/command counts, then proceed to the serial/BLE/hardware path decision.

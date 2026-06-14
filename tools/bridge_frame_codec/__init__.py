@@ -24,6 +24,7 @@ from .meshcore_companion import (
     build_channel_data_command,
     parse_channel_data_recv,
 )
+from .sim import DeliveredText, SimulatedBridgeNode, SimulatedMeshCoreLink
 
 __all__ = [
     "BridgeFrame",
@@ -48,4 +49,7 @@ __all__ = [
     "InboundChannelData",
     "build_channel_data_command",
     "parse_channel_data_recv",
+    "DeliveredText",
+    "SimulatedBridgeNode",
+    "SimulatedMeshCoreLink",
 ]
