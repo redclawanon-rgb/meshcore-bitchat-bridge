@@ -536,6 +536,108 @@ OK
 
 Gate 4B confirms the project can now represent deterministic local fixture shapes for padding, raw-deflate compression, and signing preimage construction. It still does not implement signing, signature verification, Noise, peer verification, BLE, route/v2 support, mobile app lifecycle, or stock bitchat interoperability.
 
+## Gate 4C result: identity and Ed25519 signature fixtures
+
+Gate 4C inspected upstream identity and signature surfaces:
+
+Android:
+
+- `/tmp/bitchat-android/app/src/main/java/com/bitchat/android/crypto/EncryptionService.kt`
+- `/tmp/bitchat-android/app/src/main/java/com/bitchat/android/mesh/BluetoothMeshService.kt`
+- `/tmp/bitchat-android/app/src/main/java/com/bitchat/android/mesh/MessageHandler.kt`
+- `/tmp/bitchat-android/app/src/main/java/com/bitchat/android/model/IdentityAnnouncement.kt`
+
+Apple/iOS:
+
+- `/tmp/bitchat-ios/bitchat/Services/NoiseEncryptionService.swift`
+- `/tmp/bitchat-ios/bitchat/Services/BLE/BLEAnnounceHandler.swift`
+- `/tmp/bitchat-ios/bitchat/Services/BLE/BLEPublicMessageHandler.swift`
+- `/tmp/bitchat-ios/bitchat/Protocols/Packets.swift`
+
+Observed facts:
+
+- Both platforms use a persistent Noise static identity key plus a persistent Ed25519 signing key.
+- Android uses BouncyCastle `Ed25519PrivateKeyParameters`, `Ed25519PublicKeyParameters`, and `Ed25519Signer`.
+- iOS uses `Curve25519.Signing.PrivateKey` / `Curve25519.Signing.PublicKey` from CryptoKit; despite the naming, this is Ed25519 signing.
+- Ed25519 private key material is persisted as raw 32-byte private seed bytes:
+  - Android: Base64 in encrypted shared preferences under `ed25519_signing_private_key`.
+  - iOS: raw representation in Keychain under `ed25519SigningKey`.
+- Packet signatures are Ed25519 signatures over `packet.toBinaryDataForSigning()`:
+  - signature removed
+  - TTL fixed to `SYNC_TTL_HOPS = 0`
+  - packet encoded through `BinaryProtocol.encode(...)`, therefore padded/compressed according to the same packet-wire rules.
+- Public announce packets carry identity material in TLV fields:
+  - `0x01`: nickname
+  - `0x02`: Noise public key
+  - `0x03`: Ed25519 signing public key
+  - iOS also supports optional `0x04`: direct-neighbor 8-byte IDs
+- iOS also defines canonical announce-binding bytes with context `bitchat-announce-v1`:
+  - 1-byte context length + context
+  - 8-byte peer ID padded/truncated
+  - 32-byte Noise public key padded/truncated
+  - 32-byte Ed25519 signing public key padded/truncated
+  - 1-byte nickname length + nickname prefix
+  - uint64 big-endian timestamp milliseconds
+- Inbound announce handling requires valid signature/trust before registry updates. iOS explicitly ignores unverified announces; Android verifies announce packet signatures with the announced signing key and stores peer info as verified.
+- Public text receive remains gated by verified peer/nickname state or a verified signed-sender-display-name fallback. Packet signature mechanics alone are not enough to join stock bitchat meshes.
+
+Local fixture helpers added:
+
+- `tools/bridge_frame_codec/bitchat_identity_fixture.py`
+- `ed25519_private_key_from_seed(...)`
+- `ed25519_public_key_bytes_from_seed(...)`
+- `ed25519_sign_fixture(...)`
+- `ed25519_verify_fixture(...)`
+- `canonical_announce_bytes(...)`
+- `encode_identity_announcement_tlv(...)`
+
+Deterministic non-secret fixtures pinned by tests:
+
+- Ed25519 seed: `000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f`
+- Derived Ed25519 public key:
+
+```text
+03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8
+```
+
+- Canonical announce bytes for peer `0102030405060708`, noise public key `20..3f`, signing public key above, nickname `alice`, timestamp `0x0000018F3D2A1B00`:
+
+```text
+13626974636861742d616e6e6f756e63652d76310102030405060708202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b805616c6963650000018f3d2a1b00
+```
+
+- Ed25519 signature over those canonical announce bytes:
+
+```text
+aa9cd5cb4562cd1ebec85042ae337d67d1f1f2ec4b367721c1d6cfc7363661f14c3798351cfdd9b5de73c401f120f0dc1957aa8e68e75374f023bda93405d200
+```
+
+- Identity announcement TLV with nickname `alice`, noise public key `20..3f`, signing key above, and direct neighbor `ABCDEFGH`:
+
+```text
+0105616c6963650220202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f032003a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b804084142434445464748
+```
+
+- Ed25519 signature over the Gate 4B packet signing preimage fixture:
+
+```text
+db51d9199a4b3811bbea28dad89318db2a9d6fc5fab18a5a1d91f97d5657146cb23d451da287cbb673fd48d6b23e3df29310105b0b9dd2c6a5a70e8e3337020d
+```
+
+Verification result:
+
+```text
+python3 -m unittest tests.test_bitchat_identity_fixture -v
+Ran 4 tests in 0.006s
+OK
+
+python3 -m unittest discover -s tests -v
+Ran 76 tests in 0.439s
+OK
+```
+
+Gate 4C confirms deterministic local Ed25519 fixture signing/verification over upstream-observed byte shapes. It still does not implement real identity persistence, Noise handshakes, trust policy, verified peer registry behavior, BLE lifecycle, or stock bitchat interoperability.
+
 ## Decision from this gate
 
 Keep the bridge's operational path as:

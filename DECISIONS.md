@@ -48,6 +48,12 @@ Decision: The local packet fixture module may model observed v1 padding, raw-def
 
 Rationale: Gate 4B mirrors upstream-observed field transformations: PKCS#7-style block padding, raw-deflate compression with original-size prefix, raw-first/unpad decode fallback, and signing preimage construction with TTL fixed to `SYNC_TTL_HOPS = 0` and signature removed. These are necessary conformance facts, but compatibility still depends on real identity keys, signing/verification, Noise sessions, peer registry policy, BLE behavior, and app lifecycle.
 
+## D009 — Gate 4C identity/signature fixture boundary
+
+Decision: The project may use deterministic non-secret Ed25519 fixtures to test upstream-observed signing byte shapes, announce canonical bytes, and identity TLV encoding. These fixtures must not be treated as real device identity, trust establishment, Noise authentication, verified peer registry behavior, BLE interoperability, or stock bitchat compatibility.
+
+Rationale: Gate 4C confirms Ed25519 signing/verification over `toBinaryDataForSigning()` and announce-binding bytes, but real compatibility still depends on persistent device keys, Noise static identity, signed announces accepted by trust policy, peer registry updates, app lifecycle, and BLE transport behavior.
+
 ## Pending decisions
 
 - Test hardware: which MeshCore-supported boards.

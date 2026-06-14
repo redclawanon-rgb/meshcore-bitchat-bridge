@@ -1,5 +1,17 @@
 """Bridge frame v0 codec for MeshCore ↔ bitchat bridge MVP."""
 
+from .bitchat_identity_fixture import (
+    ANNOUNCE_CONTEXT_V1,
+    BitchatIdentityFixtureError,
+    canonical_announce_bytes,
+    ed25519_private_key_from_seed,
+    ed25519_private_seed_bytes,
+    ed25519_public_key_bytes,
+    ed25519_public_key_bytes_from_seed,
+    ed25519_sign_fixture,
+    ed25519_verify_fixture,
+    encode_identity_announcement_tlv,
+)
 from .bitchat_packet_fixture import (
     BITCHAT_MESSAGE_TYPE_MESSAGE,
     BITCHAT_PACKET_VERSION_V1,
@@ -69,6 +81,16 @@ from .transport import (
 )
 
 __all__ = [
+    "ANNOUNCE_CONTEXT_V1",
+    "BitchatIdentityFixtureError",
+    "canonical_announce_bytes",
+    "ed25519_private_key_from_seed",
+    "ed25519_private_seed_bytes",
+    "ed25519_public_key_bytes",
+    "ed25519_public_key_bytes_from_seed",
+    "ed25519_sign_fixture",
+    "ed25519_verify_fixture",
+    "encode_identity_announcement_tlv",
     "BITCHAT_MESSAGE_TYPE_MESSAGE",
     "BITCHAT_PACKET_VERSION_V1",
     "BITCHAT_RECIPIENT_BROADCAST",

@@ -59,6 +59,8 @@ Local-first development is underway. Bridge frame v0 is locked, local codec is i
 - Gate 4A packet conformance fixtures implemented at `tools/bridge_frame_codec/bitchat_packet_fixture.py`, exported from `tools/bridge_frame_codec/__init__.py`, and covered by `tests/test_bitchat_packet_fixture.py`; tests pin deterministic raw unpadded v1 public `MESSAGE` fixture bytes for the iOS-observed no-recipient shape and the Android-observed broadcast-recipient shape, preserve/reject signature length structurally, and explicitly reject compressed/route-flagged packets as out of scope.
 - Gate 4B expanded packet fixtures to cover upstream-observed PKCS#7-style padding, raw-deflate compression with v1 original-size prefix, raw-first/unpad decode fallback, and signing-preimage shape with TTL fixed to `SYNC_TTL_HOPS = 0` and signature removed. These remain fixture-only: no signing, signature verification, Noise, BLE, peer authenticity, or stock compatibility claim.
 - Decision `D008` added: padding/compression/preimage fixtures are allowed for deterministic conformance tests only, while real identity/signing/verification/BLE/app lifecycle remain separate future gates.
+- Gate 4C identity/signature fixtures implemented at `tools/bridge_frame_codec/bitchat_identity_fixture.py`, exported from `tools/bridge_frame_codec/__init__.py`, and covered by `tests/test_bitchat_identity_fixture.py`; deterministic non-secret Ed25519 seed/public-key/signature fixtures cover upstream-observed packet signing preimage bytes, iOS canonical announce binding bytes, and iOS/Android identity-announcement TLV shape.
+- Decision `D009` added: deterministic Ed25519 fixtures are allowed for local byte-shape tests only, not real device identity, trust establishment, Noise authentication, verified peer registry behavior, BLE interoperability, or stock bitchat compatibility.
 - Verification commands passed:
 
 ```text
@@ -77,8 +79,11 @@ python3 tools/no_hardware_smoke.py
 python3 -m unittest tests.test_bitchat_packet_fixture -v
 # Ran 7 Gate 4A/4B packet fixture tests in 0.001s and passed
 
+python3 -m unittest tests.test_bitchat_identity_fixture -v
+# Ran 4 Gate 4C identity/signature fixture tests in 0.006s and passed
+
 python3 -m unittest discover -s tests -v
-Ran 72 tests in 0.341s
+Ran 76 tests in 0.439s
 OK
 ```
 
@@ -92,7 +97,7 @@ Post-MVP gate map complete, Gate 1 local release hygiene preflight is documented
 
 ## Next recommended loop / gate
 
-Gate 1 publication is complete for source-only repo creation/push. Gate 2A hardware inventory preflight is recorded in `docs/hardware-inventory-preflight.md`: no candidate `/dev/ttyUSB*`, `/dev/ttyACM*`, or `/dev/serial/...` device was visible on this host/session, `lsusb` is not installed, no real serial/BLE/hardware access was attempted, no-hardware smoke passed, and 59 tests passed. Gate 2B target setup is recorded in `docs/rak4631-target-setup.md` for the loose RAK19003 + RAK4631 assembly. Gates 2C/2D/2E are complete for two MeshCore-flashed WisMesh Pockets on Eric's Windows home desktop: `pocket-1` is `COM5` / serial `BAE292D6B7431B72`; `pocket-2` is `COM8` / serial `99EF9E1DC9D17560`; the 20-message stability loop delivered 20/20 alternating messages with no duplicates or parse errors. Gates 2F/2G/2H are complete for the MeshCore-side daemon: named real-port opening is gated by `--open-real-ports`, JSONL event logging and state persistence are implemented, and live unplug/replug recovery for `pocket2` / `COM8` was proven. Gate 4 scoped bitchat adapter research plus Gate 4A/4B packet fixture conformance are complete: iOS upstream `permissionlesstech/bitchat` was pinned at commit `bbe1ed0652a5f8435accdf0ef44b028409ceab7e`; Android upstream `permissionlesstech/bitchat-android` was pinned at commit `13585a9a9caf1687dec66535f78e0d918e690585`; deterministic raw unpadded v1 public `MESSAGE`, padded wire, compressed wire, and signing-preimage fixture shapes are covered without signing/verification/BLE/stock claims. Recommended next gated choices: identity/signature algorithm research, v2/route/fragment fixture research, app-native adapter design, longer unattended daemon runtime, Windows service/scheduled-task wrapper, third Pocket flashing, live BLE/app integration, production/security review, tags/releases, or public announcements.
+Gate 1 publication is complete for source-only repo creation/push. Gate 2A hardware inventory preflight is recorded in `docs/hardware-inventory-preflight.md`: no candidate `/dev/ttyUSB*`, `/dev/ttyACM*`, or `/dev/serial/...` device was visible on this host/session, `lsusb` is not installed, no real serial/BLE/hardware access was attempted, no-hardware smoke passed, and 59 tests passed. Gate 2B target setup is recorded in `docs/rak4631-target-setup.md` for the loose RAK19003 + RAK4631 assembly. Gates 2C/2D/2E are complete for two MeshCore-flashed WisMesh Pockets on Eric's Windows home desktop: `pocket-1` is `COM5` / serial `BAE292D6B7431B72`; `pocket-2` is `COM8` / serial `99EF9E1DC9D17560`; the 20-message stability loop delivered 20/20 alternating messages with no duplicates or parse errors. Gates 2F/2G/2H are complete for the MeshCore-side daemon: named real-port opening is gated by `--open-real-ports`, JSONL event logging and state persistence are implemented, and live unplug/replug recovery for `pocket2` / `COM8` was proven. Gate 4 scoped bitchat adapter research plus Gate 4A/4B/4C conformance fixtures are complete: deterministic raw unpadded v1 public `MESSAGE`, padded wire, compressed wire, signing-preimage, Ed25519 signature, canonical announce binding, and identity TLV fixture shapes are covered without real identity/trust/Noise/BLE/stock claims. Recommended next gated choices: v2/route/fragment fixture research, public-message verified-sender acceptance simulation, app-native adapter design, longer unattended daemon runtime, Windows service/scheduled-task wrapper, third Pocket flashing, live BLE/app integration, production/security review, tags/releases, or public announcements.
 
 ## Blockers
 
