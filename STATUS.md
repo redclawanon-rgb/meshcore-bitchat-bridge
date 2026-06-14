@@ -188,6 +188,10 @@ C:\Users\station1\AppData\Local\Programs\Python\Python311\python.exe -m pip inst
 # samples=13; ssh_fail=1 transient sample; parse_fail=1 same transient sample; task_statuses={'Running': 12}; last_results={'267009': 12}
 # stderr_nonzero_samples=0; error_samples_tail50=[]; latest_event_counts_tail50: daemon_plan=1, port_opened=2, port_open_failed=0, serial_read_error=0, parse_error=0
 # state file was absent/zero-length during the passive watch because no active message send/state-save event was injected.
+
+# Hermes script-only watchdog/reporting
+# ~/.hermes/scripts/meshcore_daemon_watchdog.py prints nothing when healthy; alerts only for repeated SSH failures, non-running task state, unexpected task result, non-empty daemon stderr, or port_open_failed/serial_read_error/parse_error events.
+# Hermes cron job f33031865d0a "MeshCore daemon watchdog" runs every 15 minutes and delivers alerts to the origin Telegram chat.
 ```
 
 ## Approval note
