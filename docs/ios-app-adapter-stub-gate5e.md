@@ -15,6 +15,7 @@ repo: /tmp/bitchat-ios
 branch: gate5e-ios-adapter-stub
 dfdcd6f Add disabled MeshCore bridge adapter stub
 72fdf18 Add debug MeshCore bridge hooks
+44bb8b0 Make bridge adapter stub parser-compatible
 ```
 
 Changed iOS files:
@@ -110,6 +111,37 @@ xcodebuild not available on this host
 exit_code=127
 ```
 
+MacBook SSH/Xcode verification was attempted on `Erics-MBP` (`ericdecker`, macOS 11.7.11):
+
+```text
+/Applications/Xcode.app/Contents/Developer
+Xcode 13.2.1
+Build version 13C100
+```
+
+Full project build/test is blocked on that Mac because the checked-out project/package require a newer Apple toolchain than macOS 11/Xcode 13 provides:
+
+```text
+xcodebuild -list -project bitchat.xcodeproj
+xcodebuild: error: Unable to read project 'bitchat.xcodeproj'.
+Reason: The project ‘bitchat’ is damaged and cannot be opened.
+Exception: didn't find classname for 'isa' key
+
+swift package describe
+error: package at '/Users/ericdecker/Developer/bitchat-ios-gate5e' is using Swift tools version 5.9.0 but the installed version is 5.5.0
+```
+
+The Gate 5E app source files were staged on the MacBook at `/Users/ericdecker/Developer/bitchat-ios-gate5e`, and direct parser checks for the modified app source files pass under the installed Swift 5.5.2 parser after commit `44bb8b0`:
+
+```text
+xcrun swiftc -parse bitchat/Services/Bridge/MeshBridgePublicTextAdapter.swift
+xcrun swiftc -parse bitchat/Services/Bridge/BLEService+MeshBridgeDebugPublish.swift
+xcrun swiftc -parse bitchat/Services/BLE/BLEPublicMessageHandler.swift
+mac_app_modified_swift_parse_shape_checks=ok
+```
+
+Test files still cannot be run under this toolchain because upstream tests use newer Swift Testing syntax (`#expect`).
+
 Static checks on the modified Swift files passed:
 
 ```text
@@ -125,7 +157,8 @@ Local iOS git state after commit:
 
 ```text
 ## gate5e-ios-adapter-stub
-72fdf18 (HEAD -> gate5e-ios-adapter-stub) Add debug MeshCore bridge hooks
+44bb8b0 (HEAD -> gate5e-ios-adapter-stub) Make bridge adapter stub parser-compatible
+72fdf18 Add debug MeshCore bridge hooks
 dfdcd6f Add disabled MeshCore bridge adapter stub
 ```
 

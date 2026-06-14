@@ -71,7 +71,7 @@ Local-first development is underway. Bridge frame v0 is locked, local codec is i
 - Gate 5B tests added at `tests/test_bitchat_app_adapter_pump.py`; Decision `D013` added: adapter-backed pump integration is local fixture-only and does not open BLE, serial ports, mobile apps, hardware, or stock bitchat sessions.
 - Gate 5C Android/iOS insertion-point mapping added at `docs/bitchat-app-insertion-points-gate5c.md`; Decision `D014` added: future live app work should subscribe to verified semantic public-text events after app acceptance policy and publish bridge text through existing app public-send APIs, not raw BLE/BinaryProtocol hooks.
 - Gate 5D platform-neutral app adapter API spec added at `docs/APP_ADAPTER_API.md`; Decision `D015` added: Android/iOS adapters should emit accepted semantic `VerifiedPublicTextEvent` records and publish MeshCore text through existing app public-send paths. `BitchatAppPublicTextEvent` now includes backward-compatible optional `nickname`, `app_message_id`, `platform`, and `accepted` fields.
-- Gate 5E iOS-first disabled/debug app adapter stub added in local iOS checkout `/tmp/bitchat-ios` on branch `gate5e-ios-adapter-stub`, commits `dfdcd6f` and `72fdf18`; bridge record added at `docs/ios-app-adapter-stub-gate5e.md`; Decisions `D016` and `D017` added. The iOS stub is not connected to any live bridge transport; inbound hook defaults no-op and outbound wrapper is only active if explicitly called.
+- Gate 5E iOS-first disabled/debug app adapter stub added in local iOS checkout `/tmp/bitchat-ios` on branch `gate5e-ios-adapter-stub`, commits `dfdcd6f`, `72fdf18`, and `44bb8b0`; bridge record added at `docs/ios-app-adapter-stub-gate5e.md`; Decisions `D016` and `D017` added. The iOS stub is not connected to any live bridge transport; inbound hook defaults no-op and outbound wrapper is only active if explicitly called. MacBook verification staged the checkout at `/Users/ericdecker/Developer/bitchat-ios-gate5e`; full Xcode/SwiftPM build is blocked there by macOS 11/Xcode 13.2.1 vs project Swift tools 5.9/newer `.xcodeproj` object types, but modified app source files pass direct `swiftc -parse` checks.
 - Verification commands passed:
 
 ```text
@@ -121,16 +121,29 @@ python - <<'PY'
 PY
 static_modified_swift_checks=ok
 
-cd /tmp/bitchat-ios && git status --short --branch && git log -2 --oneline --decorate
+cd /tmp/bitchat-ios && git status --short --branch && git log -3 --oneline --decorate
 ## gate5e-ios-adapter-stub
-72fdf18 (HEAD -> gate5e-ios-adapter-stub) Add debug MeshCore bridge hooks
+44bb8b0 (HEAD -> gate5e-ios-adapter-stub) Make bridge adapter stub parser-compatible
+72fdf18 Add debug MeshCore bridge hooks
 dfdcd6f Add disabled MeshCore bridge adapter stub
+
+# MacBook Gate 5E verification
+ssh ericdecker@erics-macbook-pro-1.tailcc761.ts.net 'xcodebuild -version; swift package describe; xcrun swiftc -parse <modified app files>'
+Xcode 13.2.1
+Build version 13C100
+swift package describe blocked: package uses Swift tools version 5.9.0 but installed version is 5.5.0
+xcodebuild -list blocked: didn't find classname for 'isa' key in newer .xcodeproj objects
+mac_app_modified_swift_parse_shape_checks=ok
 
 python -m pytest -q
 91 passed in 0.65s
 
 python -m pytest -q
 91 passed in 0.67s
+
+python3 -m unittest discover -s tests -v
+Ran 91 tests in 0.577s
+OK
 ```
 
 ## Approval note
