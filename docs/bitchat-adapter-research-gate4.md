@@ -692,6 +692,96 @@ OK
 
 Gate 4D is still not stock bitchat compatibility. It does not model BLE discovery, Noise sessions, app lifecycle, persistence, QR/manual trust UX, all iOS/Android trust-policy edge cases, or real mobile peer registries. It only proves that this repo can locally simulate the essential announce-gated signed-public-message acceptance seam.
 
+## Gate 4E result: v2 route, fragment, and packet-ID fixtures
+
+Gate 4E inspected upstream route/fragment/dedup surfaces:
+
+Android:
+
+- `/tmp/bitchat-android/app/src/main/java/com/bitchat/android/protocol/BinaryProtocol.kt`
+- `/tmp/bitchat-android/app/src/main/java/com/bitchat/android/model/FragmentPayload.kt`
+- `/tmp/bitchat-android/app/src/main/java/com/bitchat/android/mesh/FragmentManager.kt`
+- `/tmp/bitchat-android/app/src/main/java/com/bitchat/android/sync/PacketIdUtil.kt`
+
+Apple/iOS:
+
+- `/tmp/bitchat-ios/bitchat/Services/NotificationStreamAssembler.swift`
+- `/tmp/bitchat-ios/bitchat/Services/BLE/BLEOutboundFragmentPlanner.swift`
+- `/tmp/bitchat-ios/bitchat/Services/BLE/BLEFragmentHandler.swift`
+- `/tmp/bitchat-ios/bitchat/Sync/PacketIdUtil.swift`
+
+Observed facts:
+
+- v2 packets use the same first 12 header bytes as v1, but payload length is 4 bytes big-endian instead of 2 bytes.
+- `HAS_ROUTE = 0x08` is valid only for v2+ packets.
+- When `HAS_ROUTE` is set, the route section appears after sender and optional recipient, before payload:
+  - 1-byte route count
+  - `count * 8` route-hop peer IDs
+- v1 route-bearing packets remain invalid/out of local fixture scope.
+- Fragment packet type is `0x20`.
+- Fragment payload is exactly 13 bytes of header plus chunk bytes:
+  - 8-byte fragment ID
+  - 2-byte big-endian fragment index
+  - 2-byte big-endian total fragment count
+  - 1-byte original packet type
+  - fragment data
+- Routed fragments preserve route and use v2; unrouted fragments use v1.
+- Fragment packets are unsigned (`signature = nil`) in the outbound fragment planners.
+- Reassembly concatenates fragment data in index order, decodes the original packet bytes, then suppresses relay by setting TTL to 0 in live handler code.
+- Gossip/sync packet IDs are first 16 bytes of SHA-256 over:
+  - packet type byte
+  - sender ID
+  - timestamp uint64 big-endian
+  - payload bytes
+
+Local fixture helpers added/expanded:
+
+- `BITCHAT_PACKET_VERSION_V2`
+- `BITCHAT_MESSAGE_TYPE_FRAGMENT`
+- route support on `BitchatPacketFixture`
+- v2 4-byte payload-length encode/decode
+- route count/hop encode/decode
+- `BitchatFragmentPayloadFixture`
+- `decode_fragment_payload_fixture(...)`
+- `make_fragment_packet_fixture(...)`
+- `reassemble_fragment_payload_fixtures(...)`
+- `compute_packet_id_fixture(...)`
+- `compute_packet_id_hex_fixture(...)`
+
+Deterministic fixture vectors:
+
+- v2 routed packet with sender `0102030405060708`, recipient `1112131415161718`, route hops `2122232425262728` and `3132333435363738`, payload `route fixture`:
+
+```text
+0202050000018f3d2a1b00090000000d010203040506070811121314151617180221222324252627283132333435363738726f7574652066697874757265
+```
+
+- Fragment payload with ID `a0a1a2a3a4a5a6a7`, index `1`, total `3`, original type `MESSAGE` (`0x02`), data `chunk-two`:
+
+```text
+a0a1a2a3a4a5a6a700010003026368756e6b2d74776f
+```
+
+- Packet ID for that fragment packet fixture:
+
+```text
+88a8a59f0e1c1091d025b3427b94188f
+```
+
+Verification result:
+
+```text
+python3 -m unittest tests.test_bitchat_v2_route_fragment_fixture -v
+Ran 5 tests in 0.001s
+OK
+
+python3 -m unittest discover -s tests -v
+Ran 83 tests in 0.513s
+OK
+```
+
+Gate 4E still does not implement live relay, BLE stream assembly, route-planning correctness, mobile app lifecycle, Noise/session routing, transfer scheduling, or stock bitchat interoperability. It only pins deterministic local v2 route, fragment payload/reassembly, and packet-ID byte shapes.
+
 ## Decision from this gate
 
 Keep the bridge's operational path as:

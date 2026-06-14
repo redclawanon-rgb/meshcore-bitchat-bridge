@@ -63,6 +63,8 @@ Local-first development is underway. Bridge frame v0 is locked, local codec is i
 - Decision `D009` added: deterministic Ed25519 fixtures are allowed for local byte-shape tests only, not real device identity, trust establishment, Noise authentication, verified peer registry behavior, BLE interoperability, or stock bitchat compatibility.
 - Gate 4D verified-sender acceptance simulation implemented in `VerifiedSenderFixtureRegistry`: signed identity announces register peer nickname/noise/signing keys, and signed public messages are accepted only after a verified announce and signature verification against the registered key.
 - Decision `D010` added: verified-sender simulation is a deterministic local acceptance-policy fixture only, not BLE discovery, Noise sessions, app lifecycle, persistence, trust UX/policy edge cases, mobile peer-registry behavior, or stock compatibility.
+- Gate 4E v2/route/fragment fixtures implemented: `BitchatPacketFixture` now supports v2 4-byte payload lengths and route count/hops, `BitchatFragmentPayloadFixture` covers 13-byte fragment payload headers, fragment reassembly fixtures reconstruct original packet bytes, and packet ID fixtures pin SHA-256(type|sender|timestamp|payload)[:16].
+- Decision `D011` added: v2/route/fragment support is fixture-only and does not claim live relay behavior, BLE stream assembly, route planning, transfer scheduling, Noise/session routing, mobile lifecycle, or stock compatibility.
 - Verification commands passed:
 
 ```text
@@ -84,8 +86,11 @@ python3 -m unittest tests.test_bitchat_packet_fixture -v
 python3 -m unittest tests.test_bitchat_identity_fixture -v
 # Ran 6 Gate 4C/4D identity/signature/verified-sender tests in 0.007s and passed
 
+python3 -m unittest tests.test_bitchat_v2_route_fragment_fixture -v
+# Ran 5 Gate 4E v2/route/fragment tests in 0.001s and passed
+
 python3 -m unittest discover -s tests -v
-Ran 78 tests in 0.444s
+Ran 83 tests in 0.513s
 OK
 ```
 
@@ -99,7 +104,7 @@ Post-MVP gate map complete, Gate 1 local release hygiene preflight is documented
 
 ## Next recommended loop / gate
 
-Gate 1 publication is complete for source-only repo creation/push. Gate 2A hardware inventory preflight is recorded in `docs/hardware-inventory-preflight.md`: no candidate `/dev/ttyUSB*`, `/dev/ttyACM*`, or `/dev/serial/...` device was visible on this host/session, `lsusb` is not installed, no real serial/BLE/hardware access was attempted, no-hardware smoke passed, and 59 tests passed. Gate 2B target setup is recorded in `docs/rak4631-target-setup.md` for the loose RAK19003 + RAK4631 assembly. Gates 2C/2D/2E are complete for two MeshCore-flashed WisMesh Pockets on Eric's Windows home desktop: `pocket-1` is `COM5` / serial `BAE292D6B7431B72`; `pocket-2` is `COM8` / serial `99EF9E1DC9D17560`; the 20-message stability loop delivered 20/20 alternating messages with no duplicates or parse errors. Gates 2F/2G/2H are complete for the MeshCore-side daemon: named real-port opening is gated by `--open-real-ports`, JSONL event logging and state persistence are implemented, and live unplug/replug recovery for `pocket2` / `COM8` was proven. Gate 4 scoped bitchat adapter research plus Gate 4A/4B/4C/4D conformance fixtures are complete: deterministic raw unpadded v1 public `MESSAGE`, padded wire, compressed wire, signing-preimage, Ed25519 signature, canonical announce binding, identity TLV, and verified-sender public-message acceptance seam are covered without real identity/trust/Noise/BLE/stock claims. Recommended next gated choices: v2/route/fragment fixture research, app-native adapter design, longer unattended daemon runtime, Windows service/scheduled-task wrapper, third Pocket flashing, live BLE/app integration, production/security review, tags/releases, or public announcements.
+Gate 1 publication is complete for source-only repo creation/push. Gate 2A hardware inventory preflight is recorded in `docs/hardware-inventory-preflight.md`: no candidate `/dev/ttyUSB*`, `/dev/ttyACM*`, or `/dev/serial/...` device was visible on this host/session, `lsusb` is not installed, no real serial/BLE/hardware access was attempted, no-hardware smoke passed, and 59 tests passed. Gate 2B target setup is recorded in `docs/rak4631-target-setup.md` for the loose RAK19003 + RAK4631 assembly. Gates 2C/2D/2E are complete for two MeshCore-flashed WisMesh Pockets on Eric's Windows home desktop: `pocket-1` is `COM5` / serial `BAE292D6B7431B72`; `pocket-2` is `COM8` / serial `99EF9E1DC9D17560`; the 20-message stability loop delivered 20/20 alternating messages with no duplicates or parse errors. Gates 2F/2G/2H are complete for the MeshCore-side daemon: named real-port opening is gated by `--open-real-ports`, JSONL event logging and state persistence are implemented, and live unplug/replug recovery for `pocket2` / `COM8` was proven. Gate 4 scoped bitchat adapter research plus Gate 4A/4B/4C/4D/4E conformance fixtures are complete: deterministic raw unpadded v1 public `MESSAGE`, padded wire, compressed wire, signing-preimage, Ed25519 signature, canonical announce binding, identity TLV, verified-sender public-message acceptance, v2 route layout, fragment payload/reassembly, and packet-ID byte shapes are covered without real identity/trust/Noise/BLE/stock claims. Recommended next gated choices: app-native adapter design, longer unattended daemon runtime, Windows service/scheduled-task wrapper, third Pocket flashing, live BLE/app integration, production/security review, tags/releases, or public announcements.
 
 ## Blockers
 

@@ -60,6 +60,12 @@ Decision: The project may use `VerifiedSenderFixtureRegistry` as a local accepta
 
 Rationale: This ties packet byte shape, Ed25519 signing, identity TLV, and public-message receive gating together in deterministic tests. It remains a local seam simulation only; real interoperability still requires BLE discovery, Noise sessions, app lifecycle, persistence, trust UX/policy edge cases, and mobile peer-registry behavior.
 
+## D011 — Gate 4E v2/route/fragment fixture boundary
+
+Decision: The project may use deterministic local fixtures for v2 route-bearing packets, fragment payload encode/decode/reassembly, and gossip packet IDs. v2 route support is limited to observed byte layout: 4-byte payload length, `HAS_ROUTE = 0x08`, 1-byte route count, and 8-byte route hops before payload.
+
+Rationale: Gate 4E pins the next protocol seam needed before app/live integration: routed v2 frames, fragment packet payloads, and dedup IDs. It remains a fixture-only gate; live relay behavior, BLE stream assembly, route planning, transfer scheduling, Noise/session routing, mobile lifecycle, and stock compatibility are still separate decisions/gates.
+
 ## Pending decisions
 
 - Test hardware: which MeshCore-supported boards.
