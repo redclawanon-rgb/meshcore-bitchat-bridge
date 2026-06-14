@@ -73,6 +73,8 @@ Local-first development is underway. Bridge frame v0 is locked, local codec is i
 - Gate 5D platform-neutral app adapter API spec added at `docs/APP_ADAPTER_API.md`; Decision `D015` added: Android/iOS adapters should emit accepted semantic `VerifiedPublicTextEvent` records and publish MeshCore text through existing app public-send paths. `BitchatAppPublicTextEvent` now includes backward-compatible optional `nickname`, `app_message_id`, `platform`, and `accepted` fields.
 - Gate 5E iOS-first disabled/debug app adapter stub added in local iOS checkout `/tmp/bitchat-ios` on branch `gate5e-ios-adapter-stub`, commits `dfdcd6f`, `72fdf18`, `44bb8b0`, and `72cb7f4`; bridge record added at `docs/ios-app-adapter-stub-gate5e.md`; Decisions `D016`, `D017`, and `D018` added. The iOS stub is not connected to any live bridge transport; inbound hook defaults no-op, outbound wrapper defaults `.adapterDisabled`, and `MeshBridgeDebugAdapterConfiguration.disabled` is the explicit fully-off config owner. MacBook verification staged the checkout at `/Users/ericdecker/Developer/bitchat-ios-gate5e`; full Xcode/SwiftPM build is blocked there by macOS 11/Xcode 13.2.1 vs project Swift tools 5.9/newer `.xcodeproj` object types, but modified app source files pass direct `swiftc -parse` checks.
 - Bridge-side iOS debug config fixture added at `tools/bridge_frame_codec/ios_debug_adapter_fixture.py` with tests at `tests/test_ios_debug_adapter_fixture.py`; it executes disabled, inbound-only, outbound-only, fully-enabled, and over-length rejection behavior without claiming iOS runtime/BLE/radio delivery.
+- Gate 2I Windows daemon scheduled-task wrapper added: `scripts/windows/Start-MeshCoreBridgeDaemon.ps1`, `scripts/windows/Install-MeshCoreBridgeScheduledTask.ps1`, and `docs/windows-daemon-scheduled-task.md` preserve dry-run/no-open defaults, require `-EnableRealPorts`/`-OpenRealPorts` for live scheduled-task port opening, target `pocket1=COM5` and `pocket2=COM8`, and document `%LOCALAPPDATA%\\MeshCoreBitchatBridge` log/state paths.
+- Decision `D020` added: Windows daemon persistence remains explicit live-port gated.
 - Verification commands passed:
 
 ```text
@@ -158,6 +160,17 @@ OK
 python3 -m unittest discover -s tests -v
 Ran 96 tests in 0.533s
 OK
+
+python3 -m unittest tests.test_windows_daemon_scripts -v
+Ran 3 tests in 0.000s
+OK
+
+python3 -m unittest discover -s tests -v
+Ran 99 tests in 0.531s
+OK
+
+python3 tools/meshcore_bridge_daemon.py --port pocket1=COM5 --port pocket2=COM8 --event-log /tmp/meshcore-daemon-dryrun.jsonl --state-file /tmp/meshcore-daemon-state.json --duration-seconds 1
+mode=dry-run-no-ports-opened; event_count=1; delivered_count=0; parse_error_count=0; reconnect_count=0; JSONL daemon_plan written; no ports opened
 ```
 
 ## Approval note
@@ -166,14 +179,15 @@ Eric approved continuing local implementation to the project's logical MVP concl
 
 ## Current milestone
 
-Post-MVP gate map complete, Gate 1 local release hygiene preflight is documented in `docs/public-release-preflight.md`, and the public source repository has been created and pushed at <https://github.com/redclawanon-rgb/meshcore-bitchat-bridge>. Repo settings verified: public visibility, default branch `main`, issues enabled, wiki disabled, discussions disabled, MIT license detected, no release/tag/public announcement created.
+Post-MVP gate map complete, Gate 1 local release hygiene preflight is documented in `docs/public-release-preflight.md`, and the public source repository has been created and pushed at <https://github.com/redclawanon-rgb/meshcore-bitchat-bridge>. Repo settings verified: public visibility, default branch `main`, issues enabled, wiki disabled, discussions disabled, MIT license detected, no release/tag/public announcement created. Gate 2I Windows daemon scheduled-task wrapper is implemented locally and verified in dry-run/no-open mode; remote Windows SSH to `home-pc-atl2` timed out/reset during this session, so task registration/live scheduled-task smoke on the desktop is still pending.
 
 ## Next recommended loop / gate
 
-Gate 1 publication is complete for source-only repo creation/push. Gate 2A hardware inventory preflight is recorded in `docs/hardware-inventory-preflight.md`: no candidate `/dev/ttyUSB*`, `/dev/ttyACM*`, or `/dev/serial/...` device was visible on this host/session, `lsusb` is not installed, no real serial/BLE/hardware access was attempted, no-hardware smoke passed, and 59 tests passed. Gate 2B target setup is recorded in `docs/rak4631-target-setup.md` for the loose RAK19003 + RAK4631 assembly. Gates 2C/2D/2E are complete for two MeshCore-flashed WisMesh Pockets on Eric's Windows home desktop: `pocket-1` is `COM5` / serial `BAE292D6B7431B72`; `pocket-2` is `COM8` / serial `99EF9E1DC9D17560`; the 20-message stability loop delivered 20/20 alternating messages with no duplicates or parse errors. Gates 2F/2G/2H are complete for the MeshCore-side daemon: named real-port opening is gated by `--open-real-ports`, JSONL event logging and state persistence are implemented, and live unplug/replug recovery for `pocket2` / `COM8` was proven. Gate 4 scoped bitchat adapter research plus Gate 4A/4B/4C/4D/4E conformance fixtures are complete, Gates 5A/5B app-adapter seam/pump integration are complete, Gate 5C Android/iOS insertion-point mapping is complete, Gate 5D platform-neutral app adapter API spec is complete, and Gate 5E iOS-first disabled/debug stub plus debug inbound/outbound hooks/config owner and bridge-side config fixture simulation are complete. Recommended next gated choices: Windows service/scheduled-task wrapper, longer unattended daemon runtime, third Pocket flashing, continue non-Xcode iOS source validation, live BLE/app integration, production/security review, tags/releases, or public announcements.
+Gate 1 publication is complete for source-only repo creation/push. Gate 2A hardware inventory preflight is recorded in `docs/hardware-inventory-preflight.md`: no candidate `/dev/ttyUSB*`, `/dev/ttyACM*`, or `/dev/serial/...` device was visible on this host/session, `lsusb` is not installed, no real serial/BLE/hardware access was attempted, no-hardware smoke passed, and 59 tests passed. Gate 2B target setup is recorded in `docs/rak4631-target-setup.md` for the loose RAK19003 + RAK4631 assembly. Gates 2C/2D/2E are complete for two MeshCore-flashed WisMesh Pockets on Eric's Windows home desktop: `pocket-1` is `COM5` / serial `BAE292D6B7431B72`; `pocket-2` is `COM8` / serial `99EF9E1DC9D17560`; the 20-message stability loop delivered 20/20 alternating messages with no duplicates or parse errors. Gates 2F/2G/2H are complete for the MeshCore-side daemon: named real-port opening is gated by `--open-real-ports`, JSONL event logging and state persistence are implemented, and live unplug/replug recovery for `pocket2` / `COM8` was proven. Gate 2I Windows scheduled-task wrapper is implemented in repo and dry-run verified locally, but desktop task registration/live smoke is blocked until Windows SSH to `home-pc-atl2` is reachable again or Eric runs the documented PowerShell commands locally. Gate 4 scoped bitchat adapter research plus Gate 4A/4B/4C/4D/4E conformance fixtures are complete, Gates 5A/5B app-adapter seam/pump integration are complete, Gate 5C Android/iOS insertion-point mapping is complete, Gate 5D platform-neutral app adapter API spec is complete, and Gate 5E iOS-first disabled/debug stub plus debug inbound/outbound hooks/config owner and bridge-side config fixture simulation are complete. Recommended next gated choices: run Gate 2I desktop scheduled-task smoke when SSH/local PowerShell is available, longer unattended daemon runtime, third Pocket flashing, continue non-Xcode iOS source validation, live BLE/app integration, production/security review, tags/releases, or public announcements.
 
 ## Blockers
 
-- Gate 2H daemon state/log/reconnect hardening is complete and live-smoked; longer unattended runtime, Windows service/scheduled-task wrapper, and real bitchat-side adapter are not implemented/proven yet.
+- Gate 2I Windows scheduled-task wrapper is implemented and dry-run verified locally; desktop task registration/live scheduled-task smoke is blocked by current Windows SSH reachability (`Connection reset`/port 22 timeout to `home-pc-atl2`).
+- Longer unattended daemon runtime and real bitchat-side adapter are not implemented/proven yet.
 - Third WisMesh Pocket is still presumed Meshtastic/unknown firmware unless separately checked/flashed.
 - Real stock bitchat integration remains unscoped and unclaimed; future work needs version-pinned upstream API/conformance decisions.

@@ -114,6 +114,12 @@ Decision: The bridge repo now models the iOS debug config and hook behavior in P
 
 Rationale: Because Eric's reachable MacBook is limited to macOS 11/Xcode 13.2.1 while the upstream app requires Swift tools 5.9/newer Xcode project support, bridge-side fixture execution is the safest way to keep validating the intended semantics without overstating platform proof.
 
+## D020 — Windows daemon persistence remains explicit live-port gated
+
+Decision: The Windows persistence wrapper uses a Scheduled Task and a PowerShell launcher, but both default to dry-run/no-port mode. A live task must be registered with `-EnableRealPorts`, which passes `-OpenRealPorts` to the launcher and then `--open-real-ports` to the Python daemon.
+
+Rationale: The MeshCore daemon is now useful enough to persist/restart on Eric's Windows desktop, but serial access should remain visible and explicit. The scheduled-task wrapper preserves JSONL event logging, state-file message ID persistence, COM5/COM8 port naming, and restart behavior without silently opening hardware during dry-run validation.
+
 ## Pending decisions
 
 - Test hardware: which MeshCore-supported boards.
