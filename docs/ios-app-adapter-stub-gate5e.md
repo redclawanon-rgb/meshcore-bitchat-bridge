@@ -16,12 +16,14 @@ branch: gate5e-ios-adapter-stub
 dfdcd6f Add disabled MeshCore bridge adapter stub
 72fdf18 Add debug MeshCore bridge hooks
 44bb8b0 Make bridge adapter stub parser-compatible
+72cb7f4 Add disabled Mesh bridge config owner
 ```
 
 Changed iOS files:
 
 ```text
 bitchat/Services/Bridge/MeshBridgePublicTextAdapter.swift
+bitchat/Services/Bridge/MeshBridgeDebugAdapterConfiguration.swift
 bitchat/Services/Bridge/BLEService+MeshBridgeDebugPublish.swift
 bitchat/Services/BLE/BLEPublicMessageHandler.swift
 bitchatTests/Services/MeshBridgePublicTextAdapterTests.swift
@@ -88,6 +90,29 @@ BLEService.debugPublishBridgePublicText(...)
 - Calls existing `BLEService.sendMessage(..., to: nil, messageID:, timestamp:)` when explicitly invoked.
 - Returns `acceptedForSend=true` only for acceptance into the app send pipeline; it does not claim BLE/radio delivery.
 
+## Disabled config owner added
+
+Commit `72cb7f4` adds:
+
+```text
+MeshBridgeDebugAdapterConfiguration
+```
+
+Default behavior remains fully off:
+
+```swift
+MeshBridgeDebugAdapterConfiguration.disabled
+```
+
+- `inboundEventsEnabled == false`
+- `outboundPublishEnabled == false`
+- `localEchoMode == .none`
+- `enablesAnyBridgeBehavior == false`
+
+The config intentionally separates inbound and outbound behavior. `DebugMeshBridgePublicTextAdapter` now emits inbound events only when `configuration.inboundEventsEnabled` is true, and publishes bridge text only when `configuration.outboundPublishEnabled` is true. `BLEService.debugPublishBridgePublicText(...)` also takes a `configuration` parameter defaulting to `.disabled`, so merely compiling or accidentally calling the wrapper without explicit config still returns `.adapterDisabled` and sends nothing.
+
+This is not a runtime settings source yet; a later gate can decide whether a debug UI, launch argument, developer default, or test injection owns these values.
+
 ## Tests added/updated
 
 `MeshBridgePublicTextAdapterTests.swift` covers:
@@ -95,7 +120,8 @@ BLEService.debugPublishBridgePublicText(...)
 - event defaults match Gate 5D (`platform = "ios"`, `accepted = true`, `source = "ios-app"`);
 - disabled adapter emits no inbound event and refuses outbound publish;
 - enabled debug adapter emits accepted events only;
-- enabled debug publish delegates to an injected app-send closure and returns its result.
+- enabled debug publish delegates to an injected app-send closure and returns its result;
+- config owner defaults fully disabled and can enable inbound without enabling outbound publish.
 
 `BLEPublicMessageHandlerTests.swift` now also verifies:
 
@@ -131,13 +157,14 @@ swift package describe
 error: package at '/Users/ericdecker/Developer/bitchat-ios-gate5e' is using Swift tools version 5.9.0 but the installed version is 5.5.0
 ```
 
-The Gate 5E app source files were staged on the MacBook at `/Users/ericdecker/Developer/bitchat-ios-gate5e`, and direct parser checks for the modified app source files pass under the installed Swift 5.5.2 parser after commit `44bb8b0`:
+The Gate 5E app source files were staged on the MacBook at `/Users/ericdecker/Developer/bitchat-ios-gate5e`, and direct parser checks for the modified app source files pass under the installed Swift 5.5.2 parser after commit `72cb7f4`:
 
 ```text
+xcrun swiftc -parse bitchat/Services/Bridge/MeshBridgeDebugAdapterConfiguration.swift
 xcrun swiftc -parse bitchat/Services/Bridge/MeshBridgePublicTextAdapter.swift
 xcrun swiftc -parse bitchat/Services/Bridge/BLEService+MeshBridgeDebugPublish.swift
 xcrun swiftc -parse bitchat/Services/BLE/BLEPublicMessageHandler.swift
-mac_app_modified_swift_parse_shape_checks=ok
+mac_gate5e_config_parse_shape_checks=ok
 ```
 
 Test files still cannot be run under this toolchain because upstream tests use newer Swift Testing syntax (`#expect`).
@@ -157,7 +184,8 @@ Local iOS git state after commit:
 
 ```text
 ## gate5e-ios-adapter-stub
-44bb8b0 (HEAD -> gate5e-ios-adapter-stub) Make bridge adapter stub parser-compatible
+72cb7f4 (HEAD -> gate5e-ios-adapter-stub) Add disabled Mesh bridge config owner
+44bb8b0 Make bridge adapter stub parser-compatible
 72fdf18 Add debug MeshCore bridge hooks
 dfdcd6f Add disabled MeshCore bridge adapter stub
 ```

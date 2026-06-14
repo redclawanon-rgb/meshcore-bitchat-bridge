@@ -102,6 +102,12 @@ Decision: The iOS adapter path may expose two debug-only hook points before any 
 
 Rationale: This completes the requested iOS hook seams while preserving app ownership of BLE, packet construction/signing, sync tracking, trust, UI, and persistence. It gives a concrete future wiring point without silently enabling a live bridge, making radio-delivery claims, or bypassing iOS acceptance policy.
 
+## D018 — Gate 5E iOS config owner remains fully disabled by default
+
+Decision: iOS bridge debug wiring now has an explicit local config owner, `MeshBridgeDebugAdapterConfiguration`, whose `.disabled` default turns off inbound event emission and outbound app publication independently. The debug outbound wrapper requires `configuration.outboundPublishEnabled`; compiling the wrapper or calling it without explicit config returns `.adapterDisabled` and sends nothing.
+
+Rationale: With only an old MacBook available for non-Xcode validation, progress should remain source-level and low-risk. A separate fully-off config owner prevents accidental runtime activation while keeping the next integration seam concrete and parser-checkable.
+
 ## Pending decisions
 
 - Test hardware: which MeshCore-supported boards.
