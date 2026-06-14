@@ -368,3 +368,71 @@ Two daemon-specific issues were discovered and fixed during live testing:
 2. Restarting a daemon with message ID `1` can collide with older queued messages from the same bridge ID, causing fresh messages to be deduped. The daemon now uses a time-derived default `message_id_start`, with `--message-id-start` available for explicit control.
 
 This proves the MeshCore side now has a minimal continuous event-loop spine. It is still a skeleton: it does not yet persist queues, reconnect after device disconnects, expose a long-running service wrapper, or connect to a real bitchat-side adapter.
+
+## Gate 2G: daemon state/log hardening
+
+The MeshCore daemon was hardened with:
+
+- `--event-log PATH`: append-only JSONL event log with one structured event per line.
+- `--state-file PATH`: persistent JSON state containing `next_message_id` and per-port bridge/message-id metadata.
+- reconnect-aware port handling:
+  - failed opens emit `port_open_failed` and retry after `--reconnect-interval-seconds`.
+  - read/write/poll errors close only the affected port and schedule reconnect.
+  - normal shutdown still emits clean `port_closed` events.
+- startup state loading:
+  - if the state file has `next_message_id`, it overrides the time-derived fallback.
+  - this prevents daemon restarts from reusing message IDs and colliding with queued/deduped prior messages.
+
+Local tests added coverage for dry-run JSONL logging and state-file message ID loading. Full local test suite passed with `65` tests.
+
+Live command run on the Windows desktop:
+
+```powershell
+python tools/meshcore_bridge_daemon.py \
+  --port pocket1=COM5 \
+  --port pocket2=COM8 \
+  --inject-text pocket1:'gate2g hardened daemon smoke' \
+  --duration-seconds 6 \
+  --event-log .hermes\\runtime\\gate2g-events.jsonl \
+  --state-file .hermes\\runtime\\gate2g-state.json \
+  --open-real-ports
+```
+
+Verified first live result:
+
+- `mode`: `real-ports-opened`
+- `delivered_count`: `1`
+- `parse_error_count`: `0`
+- `reconnect_count`: `0`
+- delivered text on `pocket2`: `gate2g hardened daemon smoke`
+- `event_log`: `.hermes\\runtime\\gate2g-events.jsonl`
+- JSONL lines after first run: `16`
+- `state_file`: `.hermes\\runtime\\gate2g-state.json`
+- state saved `next_message_id`: `64113`
+
+Then the daemon was run again against the same state file:
+
+```powershell
+python tools/meshcore_bridge_daemon.py \
+  --port pocket1=COM5 \
+  --port pocket2=COM8 \
+  --inject-text pocket1:'gate2g persisted state smoke' \
+  --duration-seconds 6 \
+  --event-log .hermes\\runtime\\gate2g-events.jsonl \
+  --state-file .hermes\\runtime\\gate2g-state.json \
+  --open-real-ports
+```
+
+Verified second live result:
+
+- `state_loaded`: `true`
+- `message_id_start`: `64113`
+- delivered text on `pocket2`: `gate2g persisted state smoke`
+- delivered message ID: `64113`
+- final state saved `next_message_id`: `64114`
+- JSONL lines after second run: `32`
+- `delivered_count`: `1`
+- `parse_error_count`: `0`
+- `reconnect_count`: `0`
+
+This proves the daemon can persist event/state files across runs and avoid restart message ID reuse under the current two-Pocket desk test conditions. Reconnect paths are implemented and covered structurally, but unplug/replug recovery has not yet been live-tested.

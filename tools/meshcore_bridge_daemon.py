@@ -17,7 +17,8 @@ import json
 import sys
 import time
 from dataclasses import asdict
-from typing import Sequence
+from pathlib import Path
+from typing import TextIO, Sequence
 
 try:
     from bridge_frame_codec import SimulatedBridgeNode
@@ -57,6 +58,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--duration-seconds", type=float, default=10.0)
     parser.add_argument("--poll-interval-seconds", type=float, default=0.05)
+    parser.add_argument("--reconnect-interval-seconds", type=float, default=1.0)
+    parser.add_argument(
+        "--event-log",
+        default=None,
+        help="optional JSONL event log path; parent directories are created",
+    )
+    parser.add_argument(
+        "--state-file",
+        default=None,
+        help="optional persistent JSON state path for next message IDs",
+    )
     parser.add_argument(
         "--inject-text",
         action="append",
@@ -122,13 +134,69 @@ def _event(kind: str, **fields: object) -> dict[str, object]:
     return {"kind": kind, "ts_monotonic": time.monotonic(), **fields}
 
 
+def _open_event_log(path: str | None) -> TextIO | None:
+    if path is None:
+        return None
+    resolved = Path(path)
+    resolved.parent.mkdir(parents=True, exist_ok=True)
+    return resolved.open("a", encoding="utf-8")
+
+
+def _record_event(events: list[dict[str, object]], log: TextIO | None, event: dict[str, object]) -> None:
+    events.append(event)
+    if log is not None:
+        log.write(json.dumps(event, sort_keys=True) + "\n")
+        log.flush()
+
+
+def _load_state(path: str | None) -> dict[str, object]:
+    if path is None:
+        return {}
+    resolved = Path(path)
+    if not resolved.exists():
+        return {}
+    with resolved.open("r", encoding="utf-8") as handle:
+        loaded = json.load(handle)
+    if not isinstance(loaded, dict):
+        raise ValueError("state file must contain a JSON object")
+    return loaded
+
+
+def _state_message_id_start(state: dict[str, object], fallback: int) -> int:
+    value = state.get("next_message_id")
+    if isinstance(value, int) and value > 0:
+        return value
+    return fallback
+
+
+def _save_state(path: str | None, nodes: dict[str, SimulatedBridgeNode]) -> None:
+    if path is None:
+        return
+    next_message_id = max((node._next_message_id for node in nodes.values()), default=1)
+    payload = {
+        "type": "meshcore_bitchat_bridge_daemon_state_v0",
+        "updated_unix": time.time(),
+        "next_message_id": next_message_id,
+        "ports": {name: {"bridge_id": node.bridge_id, "next_message_id": node._next_message_id} for name, node in nodes.items()},
+    }
+    resolved = Path(path)
+    resolved.parent.mkdir(parents=True, exist_ok=True)
+    tmp = resolved.with_suffix(resolved.suffix + ".tmp")
+    with tmp.open("w", encoding="utf-8") as handle:
+        json.dump(payload, handle, indent=2, sort_keys=True)
+        handle.write("\n")
+    tmp.replace(resolved)
+
+
 def run(args: argparse.Namespace) -> dict[str, object]:
     ports = _parse_ports(args.port)
     injections = _parse_injections(args.inject_text, ports)
     bridge_id_base = int(args.bridge_id_base, 0)
-    message_id_start = args.message_id_start
-    if message_id_start is None:
-        message_id_start = int(time.time()) & 0xFFFF
+    state = _load_state(args.state_file)
+    fallback_message_id_start = args.message_id_start
+    if fallback_message_id_start is None:
+        fallback_message_id_start = int(time.time()) & 0xFFFF
+    message_id_start = _state_message_id_start(state, fallback_message_id_start)
     result: dict[str, object] = {
         "type": "meshcore_bitchat_bridge_daemon_v0",
         "mode": "real-ports-opened" if args.open_real_ports else "dry-run-no-ports-opened",
@@ -138,74 +206,137 @@ def run(args: argparse.Namespace) -> dict[str, object]:
         "bridge_id_base": bridge_id_base,
         "message_id_start": message_id_start,
         "duration_seconds": args.duration_seconds,
+        "event_log": args.event_log,
+        "state_file": args.state_file,
         "injection_count": len(injections),
         "events": [],
     }
     events: list[dict[str, object]] = result["events"]  # type: ignore[assignment]
-    events.append(_event("daemon_plan", ports=ports, injections=injections))
-    if not args.open_real_ports:
-        result["event_count"] = len(events)
-        result["delivered_count"] = 0
-        result["parse_error_count"] = 0
-        return result
+    event_log = _open_event_log(args.event_log)
 
-    try:
-        import serial  # type: ignore[import-not-found]
-    except ModuleNotFoundError as exc:  # pragma: no cover - env dependent
-        raise RuntimeError("pyserial is required for --open-real-ports") from exc
+    def record(kind: str, **fields: object) -> None:
+        _record_event(events, event_log, _event(kind, **fields))
 
-    serials = {}
-    readers = {name: SerialRxPacketReader() for name in ports}
-    nodes = {
-        name: SimulatedBridgeNode(
-            bridge_id=bridge_id_base + index,
-            channel_index=args.channel,
-            _next_message_id=message_id_start,
-        )
-        for index, name in enumerate(ports)
-    }
+    serials: dict[str, object | None] = {}
+    nodes: dict[str, SimulatedBridgeNode] = {}
     delivered_count = 0
     parse_error_count = 0
+    reconnect_count = 0
+
     try:
-        for name, device in ports.items():
-            serials[name] = serial.Serial(device, args.baud, timeout=0)
-            events.append(_event("port_opened", name=name, device=device))
+        record("daemon_plan", ports=ports, injections=injections, state_loaded=bool(state))
+        if not args.open_real_ports:
+            result["event_count"] = len(events)
+            result["delivered_count"] = 0
+            result["parse_error_count"] = 0
+            result["reconnect_count"] = 0
+            return result
+
+        try:
+            import serial  # type: ignore[import-not-found]
+        except ModuleNotFoundError as exc:  # pragma: no cover - env dependent
+            raise RuntimeError("pyserial is required for --open-real-ports") from exc
+
+        readers = {name: SerialRxPacketReader() for name in ports}
+        nodes = {
+            name: SimulatedBridgeNode(
+                bridge_id=bridge_id_base + index,
+                channel_index=args.channel,
+                _next_message_id=message_id_start,
+            )
+            for index, name in enumerate(ports)
+        }
+        next_reconnect_at = {name: 0.0 for name in ports}
+
+        def close_port(name: str, reason: str) -> None:
+            ser = serials.get(name)
+            if ser is None:
+                return
+            try:
+                ser.close()  # type: ignore[attr-defined]
+                record("port_closed", name=name, device=ports[name], reason=reason)
+            except Exception as exc:  # pragma: no cover - cleanup best-effort
+                record("port_close_error", name=name, device=ports[name], reason=reason, error=str(exc))
+            serials[name] = None
+
+        def open_due_ports(now: float) -> None:
+            nonlocal reconnect_count
+            for name, device in ports.items():
+                if serials.get(name) is not None or now < next_reconnect_at[name]:
+                    continue
+                try:
+                    serials[name] = serial.Serial(device, args.baud, timeout=0)
+                    readers[name] = SerialRxPacketReader()
+                    record("port_opened", name=name, device=device)
+                except Exception as exc:
+                    serials[name] = None
+                    reconnect_count += 1
+                    next_reconnect_at[name] = now + args.reconnect_interval_seconds
+                    record(
+                        "port_open_failed",
+                        name=name,
+                        device=device,
+                        error={"type": type(exc).__name__, "message": str(exc)},
+                        next_retry_seconds=args.reconnect_interval_seconds,
+                    )
+
+        open_due_ports(time.monotonic())
 
         for name, text in injections:
+            ser = serials.get(name)
+            if ser is None:
+                record("inject_skipped_port_closed", name=name, device=ports[name], text=text)
+                continue
             commands = nodes[name].make_text_commands(text)
-            for command in commands:
-                serials[name].write(wrap_serial_tx_packet(command))
-            events.append(
-                _event(
+            try:
+                for command in commands:
+                    ser.write(wrap_serial_tx_packet(command))  # type: ignore[attr-defined]
+                record(
                     "injected_text",
                     name=name,
                     device=ports[name],
                     text=text,
                     command_count=len(commands),
                 )
-            )
+            except Exception as exc:
+                record("inject_error", name=name, device=ports[name], error={"type": type(exc).__name__, "message": str(exc)})
+                close_port(name, "inject_error")
 
         deadline = time.monotonic() + args.duration_seconds
         while time.monotonic() < deadline:
+            now = time.monotonic()
+            open_due_ports(now)
             saw_data = False
-            for name, ser in serials.items():
-                chunk = ser.read(1024)
+            for name in list(ports):
+                ser = serials.get(name)
+                if ser is None:
+                    continue
+                try:
+                    chunk = ser.read(1024)  # type: ignore[attr-defined]
+                except Exception as exc:
+                    record("serial_read_error", name=name, device=ports[name], error={"type": type(exc).__name__, "message": str(exc)})
+                    close_port(name, "read_error")
+                    next_reconnect_at[name] = time.monotonic() + args.reconnect_interval_seconds
+                    continue
                 if not chunk:
                     continue
                 saw_data = True
-                events.append(_event("serial_chunk", name=name, hex=chunk.hex(), length=len(chunk)))
+                record("serial_chunk", name=name, hex=chunk.hex(), length=len(chunk))
                 for frame in readers[name].feed(chunk):
                     frame_type = _classify_frame(frame)
-                    frame_event = _event(
-                        "companion_frame",
-                        name=name,
-                        frame_type=frame_type,
-                        hex=frame.hex(),
-                        length=len(frame),
-                    )
+                    frame_event: dict[str, object] = {
+                        "name": name,
+                        "frame_type": frame_type,
+                        "hex": frame.hex(),
+                        "length": len(frame),
+                    }
                     if frame_type == "msg_waiting":
-                        ser.write(wrap_serial_tx_packet(b"\x0a"))
-                        frame_event["polled_sync_next_message"] = True
+                        try:
+                            ser.write(wrap_serial_tx_packet(b"\x0a"))  # type: ignore[attr-defined]
+                            frame_event["polled_sync_next_message"] = True
+                        except Exception as exc:
+                            frame_event["poll_error"] = {"type": type(exc).__name__, "message": str(exc)}
+                            close_port(name, "poll_error")
                     if frame_type == "channel_data_recv":
                         try:
                             delivered = nodes[name].receive_notification(frame)
@@ -215,25 +346,35 @@ def run(args: argparse.Namespace) -> dict[str, object]:
                         except BridgeFrameError as exc:
                             parse_error_count += 1
                             frame_event["parse_error"] = {"type": type(exc).__name__, "message": str(exc)}
-                        # Continue polling after a queued message; MeshCore may
-                        # have more than one message queued even if it only sent
-                        # one msg_waiting push.
-                        ser.write(wrap_serial_tx_packet(b"\x0a"))
-                        frame_event["polled_sync_next_message_after_channel_data"] = True
-                    events.append(frame_event)
+                        try:
+                            ser.write(wrap_serial_tx_packet(b"\x0a"))  # type: ignore[attr-defined]
+                            frame_event["polled_sync_next_message_after_channel_data"] = True
+                        except Exception as exc:
+                            frame_event["poll_error_after_channel_data"] = {"type": type(exc).__name__, "message": str(exc)}
+                            close_port(name, "poll_error_after_channel_data")
+                    record("companion_frame", **frame_event)
             if not saw_data:
                 time.sleep(args.poll_interval_seconds)
     finally:
-        for name, ser in serials.items():
-            try:
-                ser.close()
-                events.append(_event("port_closed", name=name, device=ports[name]))
-            except Exception as exc:  # pragma: no cover - cleanup best-effort
-                events.append(_event("port_close_error", name=name, error=str(exc)))
+        for name in list(serials):
+            ser = serials.get(name)
+            if ser is not None:
+                try:
+                    ser.close()  # type: ignore[attr-defined]
+                    _record_event(events, event_log, _event("port_closed", name=name, device=ports[name], reason="daemon_stop"))
+                except Exception as exc:  # pragma: no cover - cleanup best-effort
+                    _record_event(events, event_log, _event("port_close_error", name=name, device=ports[name], reason="daemon_stop", error=str(exc)))
+        if nodes:
+            _save_state(args.state_file, nodes)
+            if args.state_file is not None:
+                _record_event(events, event_log, _event("state_saved", path=args.state_file))
+        if event_log is not None:
+            event_log.close()
 
     result["event_count"] = len(events)
     result["delivered_count"] = delivered_count
     result["parse_error_count"] = parse_error_count
+    result["reconnect_count"] = reconnect_count
     return result
 
 
