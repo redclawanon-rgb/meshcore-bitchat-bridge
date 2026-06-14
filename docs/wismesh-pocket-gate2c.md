@@ -150,14 +150,51 @@ Verified dry-run output included:
 
 The repo is cloned on the Windows desktop at `C:\\Users\\station1\\meshcore-bitchat-bridge` and was up to date at `main...origin/main` when the dry-run passed.
 
-Next step is **not** the MeshCore write yet. The first Pocket currently appears to run Meshtastic/Meshtastic-derived debug firmware. A read-only `COM5` probe at 115200 opened the port without writing and read 88 bytes of ASCII debug output, including:
+Eric approved flashing `pocket-1` on `COM5` to MeshCore USB Companion.
 
-```text
-DEBUG | 18:16:13 1245 [Power] Battery: usbPower=0, isCharging=0, batMv=4180, batPct=99
+Firmware and tooling used on the Windows desktop:
+
+- Firmware package: `firmware/RAK_4631_companion_radio_usb-v1.16.0-07a3ca9.zip`
+- Source URL: `https://github.com/meshcore-dev/MeshCore/releases/download/companion-v1.16.0/RAK_4631_companion_radio_usb-v1.16.0-07a3ca9.zip`
+- SHA-256: `51AEE6E567A8F8E7C1FAE21713ACB3E3283E460675E7BE583D9A2212294D83F5`
+- DFU tool: `adafruit-nrfutil 0.5.3.post16`
+- Python: `C:\\Users\\station1\\AppData\\Local\\Programs\\Python\\Python311\\python.exe`
+
+Initial serial DFU with `--touch 1200` moved the device from application `COM5` (`VID_239A:PID_8029`) into bootloader `COM6` (`VID_239A:PID_002A`) with the same serial `BAE292D6B7431B72`. The flash then succeeded on `COM6`:
+
+```powershell
+python -m nordicsemi.__main__ dfu serial --package firmware/RAK_4631_companion_radio_usb-v1.16.0-07a3ca9.zip -p COM6 -b 115200 --singlebank
 ```
 
-That confirms the MeshCore companion write smoke would not be meaningful against the current firmware. Require explicit Eric approval before flashing one Pocket with MeshCore RAK4631 USB Companion firmware. The exact MeshCore real-port write command remains blocked until after that firmware step:
+DFU result:
+
+```text
+Activating new firmware
+Device programmed.
+FLASH_EXIT=0
+```
+
+After reboot, the device returned to:
+
+```text
+COM5 USB Serial Device VID_239A:PID_8029 SER=BAE292D6B7431B72
+```
+
+Post-flash read-only sample at 115200 opened `COM5` and read `0` bytes in 2 seconds, i.e. the earlier Meshtastic debug chatter was gone.
+
+The approved real-port smoke then succeeded:
 
 ```powershell
 python tools/bridge_serial.py --port COM5 --open-real-port 'wismesh pocket serial smoke'
 ```
+
+Verified real-port output included:
+
+- `mode`: `real-port-opened`
+- `port`: `COM5`
+- `baud`: `115200`
+- `packet_count`: `1`
+- `text_bytes`: `27`
+- `serial_len`: `57`
+
+This proves the Windows desktop opened `COM5` and wrote the encoded MeshCore companion packet. It does not yet prove over-LoRa delivery to another MeshCore node.
