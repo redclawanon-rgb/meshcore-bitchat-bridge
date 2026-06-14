@@ -1,0 +1,117 @@
+{
+  "demo_count": 3,
+  "demos": [
+    {
+      "command": [
+        "python3",
+        "tools/bridge_sim.py",
+        "--one-way",
+        "--alice-text",
+        "smoke test over simulated MeshCore"
+      ],
+      "name": "bridge_sim_one_way",
+      "stable_fields": {
+        "exchange_count": 1,
+        "first_exchange": {
+          "command_count": 1,
+          "delivered_count": 1,
+          "delivered_text": "smoke test over simulated MeshCore",
+          "from": "alice",
+          "notification_count": 1,
+          "to": "bob"
+        },
+        "inbox": {
+          "alice_count": 0,
+          "bob_count": 1,
+          "bob_texts": [
+            "smoke test over simulated MeshCore"
+          ]
+        },
+        "mode": "no-hardware",
+        "type": "meshcore_bitchat_bridge_sim_v0"
+      }
+    },
+    {
+      "command": [
+        "python3",
+        "tools/bridge_serial.py",
+        "--port",
+        "/dev/ttyUSB0",
+        "serial smoke"
+      ],
+      "name": "bridge_serial_dry_run",
+      "stable_fields": {
+        "baud": 115200,
+        "first_packet": {
+          "companion_command_hex_prefix": "3e",
+          "companion_command_len": 39,
+          "index": 0,
+          "serial_len": 42,
+          "serial_tx_hex_prefix": "3c"
+        },
+        "mode": "dry-run-no-port-opened",
+        "packet_count": 1,
+        "port": "/dev/ttyUSB0",
+        "type": "meshcore_bitchat_bridge_serial_dry_run_v0"
+      }
+    },
+    {
+      "command": [
+        "python3",
+        "tools/bridge_pump_demo.py"
+      ],
+      "name": "bridge_pump_demo",
+      "stable_fields": {
+        "carrier": {
+          "published_count": 1,
+          "published_texts": [
+            "meshcore public text into fake carrier"
+          ],
+          "queued_public_texts_remaining": 0
+        },
+        "mode": "no-hardware",
+        "pump_counts": {
+          "bitchat_texts_forwarded": 1,
+          "meshcore_commands_sent": 1,
+          "meshcore_notifications_delivered": 1,
+          "meshcore_texts_published": 1
+        },
+        "receiver": {
+          "delivered_count": 1,
+          "inbox_texts": [
+            "fake carrier public text into meshcore"
+          ]
+        },
+        "safety": {
+          "opens_ble": false,
+          "opens_serial": false,
+          "stock_bitchat_compatibility": "not-claimed",
+          "uses_fake_bitchat_text_carrier": true,
+          "uses_fake_meshcore_transport": true
+        },
+        "seeded": {
+          "bitchat_public_texts": 1,
+          "meshcore_commands": 1
+        },
+        "transport": {
+          "queued_notifications_remaining": 0,
+          "sent_command_count": 2,
+          "sent_command_lengths": [
+            65,
+            65
+          ]
+        },
+        "type": "meshcore_bitchat_bridge_pump_demo_v0"
+      }
+    }
+  ],
+  "mode": "no-hardware",
+  "safety": {
+    "opens_ble": false,
+    "opens_network": false,
+    "opens_serial": false,
+    "stock_bitchat_compatibility": "not-claimed",
+    "uses_real_hardware": false
+  },
+  "type": "meshcore_bitchat_bridge_no_hardware_smoke_v0"
+}

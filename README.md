@@ -81,6 +81,13 @@ What it does:
 - Keeps README/demo examples checkable without opening serial, BLE, hardware, network, secrets, or stock bitchat integration.
 - Invokes `bridge_serial.py` only in its default `dry-run-no-port-opened` path.
 
+Developer regression fixture:
+
+- Stable fields are pinned at `tests/fixtures/no-hardware-smoke-stable.json`.
+- Check locally with `python3 -m unittest tests.test_no_hardware_smoke_cli -v` or the full `python3 -m unittest discover -s tests -v` suite.
+- Refresh intentionally with `python3 tools/no_hardware_smoke.py > tests/fixtures/no-hardware-smoke-stable.json`, then review the diff and rerun tests.
+- See `docs/no-hardware-smoke-regression.md` for the short regression note. Do not automate fixture refreshes with cron, nudge loops, or autoloop behavior.
+
 ### Safety and compatibility boundaries
 
 - No serial port is opened by default.

@@ -2,8 +2,14 @@ import io
 import json
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
+from pathlib import Path
 
 from tools import no_hardware_smoke
+
+
+FIXTURE_PATH = (
+    Path(__file__).resolve().parent / "fixtures" / "no-hardware-smoke-stable.json"
+)
 
 
 class NoHardwareSmokeCliTests(unittest.TestCase):
@@ -118,6 +124,14 @@ class NoHardwareSmokeCliTests(unittest.TestCase):
         )
         self.assertEqual(pump["stable_fields"]["carrier"]["published_count"], 1)
         self.assertEqual(pump["stable_fields"]["receiver"]["delivered_count"], 1)
+
+    def test_smoke_transcript_matches_stable_fixture(self):
+        payload = self.run_cli_json()
+
+        with FIXTURE_PATH.open(encoding="utf-8") as fixture_file:
+            expected = json.load(fixture_file)
+
+        self.assertEqual(payload, expected)
 
     def test_rejects_unexpected_args(self):
         err = io.StringIO()

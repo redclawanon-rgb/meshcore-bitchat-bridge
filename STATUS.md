@@ -2,7 +2,7 @@
 
 ## Current state
 
-Local-first development is underway. Bridge frame v0 is locked, local codec is implemented, message-level UTF-8 text fragmentation/reassembly helpers are implemented, a local CLI harness can encode/decode frames without hardware, MeshCore companion channel-data command/notification wrappers are implemented locally, a no-hardware two-node simulator proves end-to-end text exchange over the local stack, a simulator demo CLI prints deterministic A ↔ B exchange summaries, a transport-neutral companion datagram seam has a fake transport harness, a no-hardware serial adapter scaffold/dry-run CLI emits exact MeshCore serial packet bytes, the serial companion datagram transport is exercised through the transport-neutral bridge path with fake streams only, a no-hardware orchestration smoke replays serial dry-run TX packet bytes through the simulator/fake-stream receiver path, the bitchat-side public-text seam has been inspected/designed as a semantic text-only carrier boundary without stock compatibility claims, a fake in-memory `BitchatTextCarrier` proves decoded bridge text handoff plus carrier-originated text forwarding through the existing MeshCore transport-neutral path, a tiny no-hardware bridge pump now orchestrates both directions in one text-only pass, a bridge pump demo CLI prints deterministic fake-only JSON summaries for operator sanity checks, README usage notes now document all no-hardware demo CLIs with explicit no-serial/no-BLE/fake-carrier/no-stock-compatibility boundaries, and a drift-resistant no-hardware smoke transcript script runs the documented demo CLIs as local subprocesses and captures stable JSON fields without opening hardware/network paths.
+Local-first development is underway. Bridge frame v0 is locked, local codec is implemented, message-level UTF-8 text fragmentation/reassembly helpers are implemented, a local CLI harness can encode/decode frames without hardware, MeshCore companion channel-data command/notification wrappers are implemented locally, a no-hardware two-node simulator proves end-to-end text exchange over the local stack, a simulator demo CLI prints deterministic A ↔ B exchange summaries, a transport-neutral companion datagram seam has a fake transport harness, a no-hardware serial adapter scaffold/dry-run CLI emits exact MeshCore serial packet bytes, the serial companion datagram transport is exercised through the transport-neutral bridge path with fake streams only, a no-hardware orchestration smoke replays serial dry-run TX packet bytes through the simulator/fake-stream receiver path, the bitchat-side public-text seam has been inspected/designed as a semantic text-only carrier boundary without stock compatibility claims, a fake in-memory `BitchatTextCarrier` proves decoded bridge text handoff plus carrier-originated text forwarding through the existing MeshCore transport-neutral path, a tiny no-hardware bridge pump now orchestrates both directions in one text-only pass, a bridge pump demo CLI prints deterministic fake-only JSON summaries for operator sanity checks, README usage notes now document all no-hardware demo CLIs with explicit no-serial/no-BLE/fake-carrier/no-stock-compatibility boundaries, a drift-resistant no-hardware smoke transcript script runs the documented demo CLIs as local subprocesses and captures stable JSON fields without opening hardware/network paths, and the no-hardware smoke transcript stable fields are pinned in a developer regression fixture with explicit local refresh/check instructions.
 
 ## Verified
 
@@ -48,6 +48,8 @@ Local-first development is underway. Bridge frame v0 is locked, local codec is i
 - MVP-20 README usage notes added for `tools/bridge_sim.py`, `tools/bridge_serial.py`, and `tools/bridge_pump_demo.py`, including expected JSON summaries and safety/compatibility boundaries: no serial opened by default, no BLE, fake/simulated transport and carrier paths, no stock bitchat compatibility or production-security claims.
 - MVP-21 no-hardware smoke transcript script added at `tools/no_hardware_smoke.py`, running the three documented demo CLIs via local subprocesses and summarizing stable JSON fields with explicit no-serial/no-BLE/no-network/no-real-hardware markers.
 - Smoke transcript CLI tests added at `tests/test_no_hardware_smoke_cli.py`, verifying documented commands, stable output fields, dry-run serial mode, and fake/no-hardware safety markers.
+- MVP-22 no-hardware smoke regression fixture added at `tests/fixtures/no-hardware-smoke-stable.json`, with `tests/test_no_hardware_smoke_cli.py` comparing the full stable transcript to the fixture.
+- Developer refresh/check note added at `docs/no-hardware-smoke-regression.md`, and README now points to the fixture, local check command, intentional refresh command, and no cron/nudge/autoloop boundary.
 - Verification commands passed:
 
 ```text
@@ -64,7 +66,7 @@ python3 tools/no_hardware_smoke.py
 # ran the three documented demo CLIs locally and printed a stable no-hardware JSON transcript
 
 python3 -m unittest discover -s tests -v
-Ran 58 tests in 0.209s
+Ran 59 tests in 0.341s
 OK
 ```
 
@@ -74,11 +76,11 @@ Eric approved continuing local implementation to the project's logical MVP concl
 
 ## Current milestone
 
-MVP-21 complete: `tools/no_hardware_smoke.py` now runs the documented no-hardware demo CLIs (`bridge_sim.py`, `bridge_serial.py`, and `bridge_pump_demo.py`) as local subprocesses, parses their JSON, and emits a stable transcript summary. README documents the script and keeps the operator boundary clear: no serial opens by default, no BLE, no network, fake/simulated transport and carrier paths, no stock bitchat packet forging, and no compatibility/security claims.
+MVP-22 complete: the no-hardware smoke transcript now has a pinned stable-field fixture at `tests/fixtures/no-hardware-smoke-stable.json`, test coverage compares `tools/no_hardware_smoke.py` output against that fixture, and `docs/no-hardware-smoke-regression.md` plus README show explicit local refresh/check commands. The boundary remains local-only: no serial/BLE/hardware/network/secrets/stock bitchat integration, and no cron/nudge/autoloop behavior.
 
 ## Next recommended loop
 
-MVP-22: add a tiny developer-facing regression note or fixture for the no-hardware smoke transcript (for example under `examples/` or docs) that shows how to refresh/check the stable fields locally, without adding cron/nudge/autoloop behavior and without touching real serial, BLE, hardware, network, secrets, or stock bitchat integration.
+MVP-23: add a small local pre-hardware readiness note that maps the existing no-hardware demos, smoke transcript fixture, and gated `HARDWARE_SMOKE.md` checklist into an operator handoff, without opening serial/BLE/hardware/network paths, adding automation/cron/nudge/autoloop behavior, handling secrets, or claiming stock bitchat compatibility/production security.
 
 ## Blockers
 
