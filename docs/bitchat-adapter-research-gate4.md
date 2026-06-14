@@ -436,6 +436,106 @@ OK
 
 Gate 4A confirms that the project now has deterministic, version-pinned packet fixture coverage for the two public-message shapes observed upstream, while preserving the no-BLE/no-stock-compatibility boundary.
 
+## Gate 4B result: padding, compression, and signing-preimage fixture shapes
+
+Gate 4B inspected current Android upstream protocol code in:
+
+- `/tmp/bitchat-android/app/src/main/java/com/bitchat/android/protocol/BinaryProtocol.kt`
+- `/tmp/bitchat-android/app/src/main/java/com/bitchat/android/protocol/MessagePadding.kt`
+- `/tmp/bitchat-android/app/src/main/java/com/bitchat/android/protocol/CompressionUtil.kt`
+- `/tmp/bitchat-android/app/src/main/java/com/bitchat/android/util/AppConstants.kt`
+
+Observed details implemented locally as fixture helpers:
+
+- `BinaryProtocol.encode(...)` pads encoded packets to `MessagePadding.optimalBlockSize(result.size)`.
+- `MessagePadding.optimalBlockSize(dataSize)` adds ~16 bytes overhead and chooses the first block in `256, 512, 1024, 2048` that fits; otherwise it returns the original data size.
+- `MessagePadding.pad(...)` uses strict PKCS#7-style bytes: all pad bytes equal the pad length; padding is skipped if it would exceed one-byte pad length `255`.
+- `BinaryProtocol.decode(...)` tries raw decode first, then strict-unpads and tries again.
+- `CompressionUtil.shouldCompress(...)` requires payload length at least `COMPRESSION_THRESHOLD_BYTES = 100` and byte diversity below `0.9`.
+- `CompressionUtil.compress(...)` uses raw deflate (`Deflater(..., nowrap=true)`) and only keeps compression if compressed length is smaller than original length.
+- v1 compressed payload field is `2-byte original payload size` followed by raw deflate bytes, and the packet payload-length field includes both.
+- `BitchatPacket.toBinaryDataForSigning()` removes the signature and fixes TTL to `SYNC_TTL_HOPS = 0`, then passes the unsigned packet through `BinaryProtocol.encode(...)`, so the preimage shape can also be padded/compressed.
+
+Local fixture helpers added/expanded:
+
+- `encode_wire_v1(apply_padding=True, allow_compression=True)`
+- `decode_wire_v1_packet_fixture(...)`
+- `encode_signing_preimage_v1()`
+- `optimal_padding_block_size(...)`
+- `pad_fixture_packet(...)`
+- `unpad_fixture_packet(...)`
+- `should_compress_payload(...)`
+- `compress_payload_raw_deflate(...)`
+- raw-deflate decompression inside compressed v1 fixture decode
+
+Deterministic Gate 4B fixture behavior pinned by tests:
+
+### Padded short public packet
+
+The short iOS-style public-message raw fixture from Gate 4A is 36 bytes. With observed padding rules:
+
+- optimal block size: `256`
+- pad length: `220` / `0xdc`
+- padded packet length: `256`
+- decode path: raw decode fails due trailing pad bytes, strict unpad succeeds, fixture decode succeeds
+
+### Compressed Android-style public packet
+
+Input text:
+
+```text
+This is a test message that should compress well. 
+```
+
+repeated 10 times, for 500 original payload bytes.
+
+Expected raw compressed fixture hex:
+
+```text
+0102070000018f3d2a1b000500390102030405060708ffffffffffffffff01f40bc9c82c5600a2448592d4e21285dcd4e2e2c4f45485928cc41285e28cfcd29c1485e4fcdc8222a0b842796a4e8e9e42c8a88e21ae0300
+```
+
+Interpretation:
+
+- flags: `0x05` = has recipient + compressed
+- payload field length: `0x0039` / 57 bytes
+- original size prefix: `0x01f4` / 500 bytes
+- compressed body: raw deflate bytes
+- padded wire length: 256 bytes with `0xa9` padding
+- decode returns the original 500-byte UTF-8 text
+
+### Signing-preimage shape fixture
+
+For a signed Android-style short public message fixture, `encode_signing_preimage_v1()` produces padded wire bytes whose unpadded content is:
+
+```text
+0102000000018f3d2a1b0001000e0102030405060708ffffffffffffffff6761746534612066697874757265
+```
+
+Interpretation:
+
+- type remains `0x02`
+- TTL is fixed to `0x00`
+- signature flag is absent
+- recipient remains broadcast
+- payload remains `gate4a fixture`
+- result is padded to 256 bytes
+- this is only a preimage-shape fixture; it is not a signature, public key, or verification implementation
+
+Verification result:
+
+```text
+python3 -m unittest tests.test_bitchat_packet_fixture -v
+Ran 7 tests in 0.001s
+OK
+
+python3 -m unittest discover -s tests -v
+Ran 72 tests in 0.341s
+OK
+```
+
+Gate 4B confirms the project can now represent deterministic local fixture shapes for padding, raw-deflate compression, and signing preimage construction. It still does not implement signing, signature verification, Noise, peer verification, BLE, route/v2 support, mobile app lifecycle, or stock bitchat interoperability.
+
 ## Decision from this gate
 
 Keep the bridge's operational path as:

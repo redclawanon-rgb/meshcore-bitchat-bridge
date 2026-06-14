@@ -42,6 +42,12 @@ Decision: The local `bitchat_packet_fixture` module is a research/conformance fi
 
 Rationale: Gate 4A gives deterministic packet bytes for planning and regression tests while preserving the no-BLE/no-stock-compatibility boundary. Padding, compression, fragmentation, signing, signature verification, Noise, peer verification, app lifecycle, and BLE behavior remain separate future gates.
 
+## D008 — Gate 4B padding/compression/preimage fixture boundary
+
+Decision: The local packet fixture module may model observed v1 padding, raw-deflate compression, and signing-preimage shape for deterministic tests, but it still must not sign packets, verify signatures, claim peer authenticity, open BLE, or claim stock bitchat compatibility.
+
+Rationale: Gate 4B mirrors upstream-observed field transformations: PKCS#7-style block padding, raw-deflate compression with original-size prefix, raw-first/unpad decode fallback, and signing preimage construction with TTL fixed to `SYNC_TTL_HOPS = 0` and signature removed. These are necessary conformance facts, but compatibility still depends on real identity keys, signing/verification, Noise sessions, peer registry policy, BLE behavior, and app lifecycle.
+
 ## Pending decisions
 
 - Test hardware: which MeshCore-supported boards.
