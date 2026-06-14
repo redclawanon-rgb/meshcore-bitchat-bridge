@@ -21,7 +21,7 @@ Build an MVP bridge that can carry bitchat-like text messages over MeshCore/LoRa
 - `evidence/meshcore-payload-budget.md` — MeshCore payload budget evidence
 - `tools/bridge_frame_codec/` — local Python bridge-frame/message/MeshCore companion codec
 - `tools/bridge_frame_codec/transport.py` — transport-neutral companion datagram seam + fake transport
-- `tools/bridge_frame_codec/serial_adapter.py` — no-hardware MeshCore serial packet wrapper/parser + no-open serial transport skeleton
+- `tools/bridge_frame_codec/serial_adapter.py` — no-hardware MeshCore serial packet wrapper/parser/replay extraction helper + no-open serial transport skeleton
 - `HARDWARE_SMOKE.md` — gated hardware smoke checklist; no real port use without explicit Eric invocation
 - `tools/bridge_cli.py` — local encode/decode CLI harness
 - `tools/bridge_sim.py` — no-hardware simulator demo CLI
@@ -77,7 +77,7 @@ Use a transport-neutral companion-datagram seam for live adapters. First live ad
 python3 -m unittest discover -s tests -v
 ```
 
-Latest verified result: 46 tests passed; serial transport covered through transport-neutral bridge helpers with fake streams only; serial dry-run still emits no-port-opened packets by default.
+Latest verified result: 48 tests passed; serial transport covered through transport-neutral bridge helpers with fake streams only; serial dry-run still emits no-port-opened packets by default; MVP-15 dry-run replay smoke proves serial TX packet bytes can be extracted and replayed through simulated MeshCore notifications into a fake serial stream/receiver inbox without real port access.
 
 ## Approval boundaries
 
@@ -87,4 +87,4 @@ Do not handle raw secrets in project files.
 
 ## Next action
 
-Run MVP-15: add a no-hardware bridge orchestration smoke that ties serial dry-run packet output to the simulator/fake-stream path. Any real serial access still requires explicit `--open-real-port`/`open_real_port=True` approval and invocation.
+Run MVP-16: inspect/design the bitchat-side transport seam and define the narrow local adapter boundary needed to connect decoded bridge text to a future bitchat carrier without claiming stock compatibility. Any real serial access still requires explicit `--open-real-port`/`open_real_port=True` approval and invocation.

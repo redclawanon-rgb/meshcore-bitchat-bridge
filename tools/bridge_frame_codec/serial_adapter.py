@@ -76,6 +76,28 @@ def wrap_serial_tx_packet(command: bytes) -> bytes:
     return bytes([SERIAL_TX_START]) + len(command).to_bytes(2, "little") + command
 
 
+def unwrap_serial_tx_packet(packet: bytes) -> bytes:
+    """Extract companion command bytes from a dry-run serial TX packet.
+
+    This is intentionally a no-hardware replay helper: it accepts bytes already
+    emitted by the dry-run path and validates the MeshCore serial-write envelope
+    without opening or probing any serial port.
+    """
+    if len(packet) < 3:
+        raise BridgeFrameError(f"serial TX packet too short: {len(packet)} < 3")
+    if packet[0] != SERIAL_TX_START:
+        raise BridgeFrameError(f"unexpected serial TX start: 0x{packet[0]:02x}")
+    size = int.from_bytes(packet[1:3], "little")
+    if size > MAX_SERIAL_PAYLOAD:
+        raise BridgeFrameError(
+            f"serial payload too large: {size} > {MAX_SERIAL_PAYLOAD}"
+        )
+    actual = len(packet) - 3
+    if actual != size:
+        raise BridgeFrameError(f"serial TX payload length mismatch: {actual} != {size}")
+    return packet[3:]
+
+
 def wrap_serial_rx_packet(notification: bytes) -> bytes:
     """Build a synthetic incoming serial packet for tests/dry runs."""
     if len(notification) > MAX_SERIAL_PAYLOAD:

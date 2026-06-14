@@ -31,6 +31,7 @@ from .serial_adapter import (
     SERIAL_TX_START,
     SerialCompanionDatagramTransport,
     SerialRxPacketReader,
+    unwrap_serial_tx_packet,
     wrap_serial_rx_packet,
     wrap_serial_tx_packet,
 )
@@ -76,6 +77,7 @@ __all__ = [
     "SERIAL_TX_START",
     "SerialCompanionDatagramTransport",
     "SerialRxPacketReader",
+    "unwrap_serial_tx_packet",
     "drain_transport_to_node",
     "send_text_over_transport",
     "wrap_serial_rx_packet",

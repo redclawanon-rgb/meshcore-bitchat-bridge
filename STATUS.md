@@ -2,7 +2,7 @@
 
 ## Current state
 
-Local-first development is underway. Bridge frame v0 is locked, local codec is implemented, message-level UTF-8 text fragmentation/reassembly helpers are implemented, a local CLI harness can encode/decode frames without hardware, MeshCore companion channel-data command/notification wrappers are implemented locally, a no-hardware two-node simulator proves end-to-end text exchange over the local stack, a simulator demo CLI prints deterministic A ↔ B exchange summaries, a transport-neutral companion datagram seam has a fake transport harness, a no-hardware serial adapter scaffold/dry-run CLI emits exact MeshCore serial packet bytes, and the serial companion datagram transport is exercised through the transport-neutral bridge path with fake streams only.
+Local-first development is underway. Bridge frame v0 is locked, local codec is implemented, message-level UTF-8 text fragmentation/reassembly helpers are implemented, a local CLI harness can encode/decode frames without hardware, MeshCore companion channel-data command/notification wrappers are implemented locally, a no-hardware two-node simulator proves end-to-end text exchange over the local stack, a simulator demo CLI prints deterministic A ↔ B exchange summaries, a transport-neutral companion datagram seam has a fake transport harness, a no-hardware serial adapter scaffold/dry-run CLI emits exact MeshCore serial packet bytes, the serial companion datagram transport is exercised through the transport-neutral bridge path with fake streams only, and a no-hardware orchestration smoke replays serial dry-run TX packet bytes through the simulator/fake-stream receiver path.
 
 ## Verified
 
@@ -33,6 +33,8 @@ Local-first development is underway. Bridge frame v0 is locked, local codec is i
 - Serial dry-run CLI implemented at `tools/bridge_serial.py`.
 - Serial CLI real-port path now requires explicit `--open-real-port`; dry-run remains no-open by default.
 - Serial adapter tests implemented at `tests/test_serial_adapter.py`.
+- Serial dry-run replay helper implemented via `unwrap_serial_tx_packet`, proving dry-run TX bytes can be validated/extracted without opening a port.
+- MVP-15 no-hardware orchestration smoke test proves text -> serial dry-run TX packet bytes -> extracted companion command -> simulated MeshCore notification -> fake serial stream -> receiver inbox.
 - Gated hardware smoke checklist drafted at `HARDWARE_SMOKE.md`; real serial access remains behind explicit Eric invocation and `--open-real-port`/`open_real_port=True`.
 - Verification commands passed:
 
@@ -44,7 +46,7 @@ python3 tools/bridge_serial.py --port /dev/ttyUSB0 'serial smoke'
 # printed one dry-run serial packet, no port opened
 
 python3 -m unittest discover -s tests -v
-Ran 46 tests in 0.013s
+Ran 48 tests in 0.012s
 OK
 ```
 
@@ -54,11 +56,11 @@ Eric approved continuing local implementation to the project's logical MVP concl
 
 ## Current milestone
 
-MVP-14 complete: serial companion datagram transport exercised through the transport-neutral bridge path with fake streams, and gated hardware smoke checklist drafted.
+MVP-15 complete: no-hardware serial dry-run orchestration smoke ties dry-run TX packet output to the simulator/fake-stream receiver path while keeping real serial access gated.
 
 ## Next recommended loop
 
-MVP-15: add a no-hardware bridge orchestration smoke that ties the serial dry-run packet output to the simulator/fake-stream path, keeping real serial access gated.
+MVP-16: inspect/design the bitchat-side transport seam and define the narrow local adapter boundary needed to connect decoded bridge text to a future bitchat carrier without claiming stock compatibility.
 
 ## Blockers
 
