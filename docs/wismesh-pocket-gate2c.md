@@ -232,4 +232,52 @@ Real-port smoke succeeded on both ports:
 - `COM5`: `mode=real-port-opened`, `packet_count=1`, `text_bytes=32`, `serial_len=62`.
 - `COM8`: `mode=real-port-opened`, `packet_count=1`, `text_bytes=29`, `serial_len=59`.
 
-This proves both connected Pockets can be opened from the Windows desktop and can receive encoded MeshCore companion serial writes. It still does not prove over-LoRa delivery between nodes; that is the next gate.
+This proves both connected Pockets can be opened from the Windows desktop and can receive encoded MeshCore companion serial writes.
+
+## Gate 2D: two-node over-LoRa delivery
+
+A gated live two-port utility was added at `tools/live_lora_smoke.py`. It opens a transmit port and receive port only when `--open-real-ports` is passed, sends a MeshCore channel-data datagram, listens for MeshCore serial frames on the receiver, handles `PUSH_CODE_MSG_WAITING` (`0x83`) by polling `CMD_SYNC_NEXT_MESSAGE` (`0x0A`), and decodes `RESP_CODE_CHANNEL_DATA_RECV` (`0x1B`) into bridge text.
+
+The first live attempt saw RF activity but did not poll queued messages yet: both receivers emitted `PUSH_CODE_LOG_RX_DATA` (`0x88`) and `PUSH_CODE_MSG_WAITING` (`0x83`). Upstream docs/source confirmed `0x83` means the host must poll `CMD_SYNC_NEXT_MESSAGE` to retrieve queued datagrams.
+
+After adding message polling, two-way over-LoRa delivery succeeded:
+
+### COM5 / pocket-1 to COM8 / pocket-2
+
+Command:
+
+```powershell
+python tools/live_lora_smoke.py --tx-port COM5 --rx-port COM8 --open-real-ports --listen-seconds 30 'gate2d COM5 to COM8 poll smoke'
+```
+
+Verified output included:
+
+- `mode`: `real-ports-opened`
+- `tx_port`: `COM5`
+- `rx_port`: `COM8`
+- `notification_count`: `3`
+- notification types: `log_rx_data`, `msg_waiting`, `channel_data_recv`
+- `delivered_count`: `1`
+- decoded text: `gate2d COM5 to COM8 lora smoke`
+- `parse_errors`: `[]`
+
+### COM8 / pocket-2 to COM5 / pocket-1
+
+Command:
+
+```powershell
+python tools/live_lora_smoke.py --tx-port COM8 --rx-port COM5 --open-real-ports --listen-seconds 30 'gate2d COM8 to COM5 poll smoke'
+```
+
+Verified output included:
+
+- `mode`: `real-ports-opened`
+- `tx_port`: `COM8`
+- `rx_port`: `COM5`
+- `notification_count`: `3`
+- notification types: `log_rx_data`, `msg_waiting`, `channel_data_recv`
+- `delivered_count`: `1`
+- decoded text: `gate2d COM8 to COM5 lora smoke`
+- `parse_errors`: `[]`
+
+This proves actual bidirectional over-LoRa delivery of the bridge-encoded text payload between the two MeshCore-flashed WisMesh Pockets, via the Windows desktop serial bridge path.
