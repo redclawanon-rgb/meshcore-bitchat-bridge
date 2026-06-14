@@ -281,3 +281,41 @@ Verified output included:
 - `parse_errors`: `[]`
 
 This proves actual bidirectional over-LoRa delivery of the bridge-encoded text payload between the two MeshCore-flashed WisMesh Pockets, via the Windows desktop serial bridge path.
+
+## Gate 2E: 20-message bidirectional stability loop
+
+A gated stability runner was added at `tools/live_lora_stability.py`. It alternates one-message `live_lora_smoke` attempts between two ports, records per-message latency, delivery status, notification frame types, parse errors, duplicate deliveries, and aggregate delivery rate. It defaults to dry-run/no-open mode and requires `--open-real-ports` for live hardware.
+
+Live command run on the Windows desktop:
+
+```powershell
+python tools/live_lora_stability.py --port-a COM5 --port-b COM8 --count 20 --listen-seconds 8 --pause-seconds 0.25 --open-real-ports
+```
+
+Verified aggregate result:
+
+- `mode`: `real-ports-opened`
+- `count`: `20`
+- `delivered`: `20`
+- `failed`: `0`
+- `delivery_rate`: `1.0`
+- `duplicate_deliveries`: `0`
+- `parse_error_count`: `0`
+- notification type counts:
+  - `log_rx_data`: `20`
+  - `msg_waiting`: `20`
+  - `channel_data_recv`: `20`
+- latency seconds:
+  - min: `0.8589999999967404`
+  - avg: `0.8749499999976251`
+  - median: `0.875`
+  - max: `0.8910000000032596`
+
+All 20 attempts alternated directions:
+
+- odd attempts: `COM5` / `pocket-1` to `COM8` / `pocket-2`
+- even attempts: `COM8` / `pocket-2` to `COM5` / `pocket-1`
+
+Each attempt delivered exactly one decoded text payload and saw the expected notification sequence `log_rx_data`, `msg_waiting`, `channel_data_recv`.
+
+This proves a short bidirectional LoRa reliability loop is stable under the current desk/test conditions. It still does not prove long-duration daemon behavior, mobile/stock bitchat compatibility, or performance under range/interference/load.
