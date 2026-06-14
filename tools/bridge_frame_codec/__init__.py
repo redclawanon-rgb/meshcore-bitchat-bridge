@@ -1,5 +1,11 @@
 """Bridge frame v0 codec for MeshCore ↔ bitchat bridge MVP."""
 
+from .bitchat_app_adapter import (
+    BitchatAppAdapter,
+    BitchatAppAdapterError,
+    BitchatAppPublicTextEvent,
+    LocalFixtureBitchatAppAdapter,
+)
 from .bitchat_identity_fixture import (
     ANNOUNCE_CONTEXT_V1,
     BitchatIdentityFixtureError,
@@ -97,6 +103,10 @@ from .transport import (
 )
 
 __all__ = [
+    "BitchatAppAdapter",
+    "BitchatAppAdapterError",
+    "BitchatAppPublicTextEvent",
+    "LocalFixtureBitchatAppAdapter",
     "ANNOUNCE_CONTEXT_V1",
     "BitchatIdentityFixtureError",
     "IdentityAnnouncementFixture",

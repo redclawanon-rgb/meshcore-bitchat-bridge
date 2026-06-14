@@ -66,6 +66,12 @@ Decision: The project may use deterministic local fixtures for v2 route-bearing 
 
 Rationale: Gate 4E pins the next protocol seam needed before app/live integration: routed v2 frames, fragment packet payloads, and dedup IDs. It remains a fixture-only gate; live relay behavior, BLE stream assembly, route planning, transfer scheduling, Noise/session routing, mobile lifecycle, and stock compatibility are still separate decisions/gates.
 
+## D012 — Gate 5A app-native adapter boundary
+
+Decision: The next bitchat-side integration layer should be an app-native adapter contract, proven locally first with deterministic Gate 4 fixtures. The MeshCore bridge core should consume semantic public-text events and publish bridge-delivered text through an adapter API; it should not directly own BLE, Noise, app lifecycle, route planning, trust UI, or mobile persistence.
+
+Rationale: Gate 5A defines `BitchatAppAdapter` and `LocalFixtureBitchatAppAdapter` as the seam between fixture-proven packet behavior and future Android/iOS integration. This keeps the Python bridge architecture clean while avoiding a false stock-BLE compatibility claim. Live Android/iOS insertion points remain future gates.
+
 ## Pending decisions
 
 - Test hardware: which MeshCore-supported boards.
