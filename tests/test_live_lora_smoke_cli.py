@@ -26,6 +26,10 @@ class LiveLoraSmokeCliTests(unittest.TestCase):
         self.assertEqual(payload["command_count"], 1)
         self.assertEqual(payload["delivered"], [])
         self.assertEqual(payload["raw_rx_hex_chunks"], [])
+    def test_polls_after_unknown_sync_next_response(self):
+        self.assertTrue(live_lora_smoke._should_poll_sync_next_after_frame("unknown_0x08"))
+        self.assertTrue(live_lora_smoke._should_poll_sync_next_after_frame("channel_data_recv"))
+        self.assertFalse(live_lora_smoke._should_poll_sync_next_after_frame("no_more_messages"))
 
 
 if __name__ == "__main__":

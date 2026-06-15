@@ -73,6 +73,11 @@ class MeshCoreBridgeDaemonCliTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "expected NAME=DEVICE"):
             meshcore_bridge_daemon.run(args)
 
+    def test_polls_after_unknown_sync_next_response(self):
+        self.assertTrue(meshcore_bridge_daemon._should_poll_sync_next_after_frame("unknown_0x08"))
+        self.assertTrue(meshcore_bridge_daemon._should_poll_sync_next_after_frame("channel_data_recv"))
+        self.assertFalse(meshcore_bridge_daemon._should_poll_sync_next_after_frame("no_more_messages"))
+
 
 if __name__ == "__main__":
     unittest.main()

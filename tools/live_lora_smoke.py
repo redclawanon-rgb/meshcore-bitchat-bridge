@@ -70,6 +70,10 @@ def _classify_frame(frame: bytes) -> str:
     }.get(frame[0], f"unknown_0x{frame[0]:02x}")
 
 
+def _should_poll_sync_next_after_frame(frame_type: str) -> bool:
+    return frame_type == "channel_data_recv" or frame_type.startswith("unknown_")
+
+
 def run(args: argparse.Namespace) -> dict[str, object]:
     tx_node = SimulatedBridgeNode(
         bridge_id=int(args.tx_bridge_id, 0),
@@ -145,6 +149,9 @@ def run(args: argparse.Namespace) -> dict[str, object]:
                             result["parse_errors"].append(  # type: ignore[index, union-attr]
                                 {"notification_hex": notification.hex(), "error": _json_safe_error(exc)}
                             )
+                    if _should_poll_sync_next_after_frame(frame_type):
+                        rx_serial.write(wrap_serial_tx_packet(b"\x0a"))
+                        item["polled_sync_next_message_after_frame"] = True
                     result["notifications"].append(item)  # type: ignore[index, union-attr]
             if result["delivered"]:  # type: ignore[index]
                 break

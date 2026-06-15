@@ -130,6 +130,16 @@ def _classify_frame(frame: bytes) -> str:
     }.get(frame[0], f"unknown_0x{frame[0]:02x}")
 
 
+def _should_poll_sync_next_after_frame(frame_type: str) -> bool:
+    """Return true when a sync-next response may not have drained the queue.
+
+    MeshCore can return queued non-channel messages before the channel-data
+    datagram we care about. Keep polling after unknown sync-next responses so a
+    daemon does not stop at the first unrelated queued message.
+    """
+    return frame_type == "channel_data_recv" or frame_type.startswith("unknown_")
+
+
 def _event(kind: str, **fields: object) -> dict[str, object]:
     return {"kind": kind, "ts_monotonic": time.monotonic(), **fields}
 
@@ -346,12 +356,13 @@ def run(args: argparse.Namespace) -> dict[str, object]:
                         except BridgeFrameError as exc:
                             parse_error_count += 1
                             frame_event["parse_error"] = {"type": type(exc).__name__, "message": str(exc)}
+                    if _should_poll_sync_next_after_frame(frame_type):
                         try:
                             ser.write(wrap_serial_tx_packet(b"\x0a"))  # type: ignore[attr-defined]
-                            frame_event["polled_sync_next_message_after_channel_data"] = True
+                            frame_event["polled_sync_next_message_after_frame"] = True
                         except Exception as exc:
-                            frame_event["poll_error_after_channel_data"] = {"type": type(exc).__name__, "message": str(exc)}
-                            close_port(name, "poll_error_after_channel_data")
+                            frame_event["poll_error_after_frame"] = {"type": type(exc).__name__, "message": str(exc)}
+                            close_port(name, "poll_error_after_frame")
                     record("companion_frame", **frame_event)
             if not saw_data:
                 time.sleep(args.poll_interval_seconds)
