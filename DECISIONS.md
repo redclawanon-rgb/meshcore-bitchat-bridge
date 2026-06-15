@@ -156,10 +156,16 @@ Decision: Android may include a `MeshBridgeOutboundPublicTextWrapper` for future
 
 Rationale: The wrapper validates bridge text and metadata before any app send callback and lets tests prove rejection/acceptance behavior without BLE, Android lifecycle, or service runtime side effects. Keeping `sendMessage(...)` uninjected avoids accidentally broadcasting bridge-originated content before device runtime approval.
 
+## D027 — Gate 5L stops at debug APK build artifacts
+
+Decision: Android debug APK packaging may be used as a local compile/package preflight after the disabled adapter gates, but installing/running the APK remains a separate approval gate. Gate 5L records generated debug APK artifacts only; no device/emulator, BLE, release signing, upstream push, or public distribution action is taken.
+
+Rationale: `:app:assembleDebug` catches packaging and manifest/resource issues that unit tests do not, while avoiding runtime side effects. It is the safest final local preflight before device/emulator approval.
+
 ## Pending decisions
 
 - Test hardware: which MeshCore-supported boards.
 - MVP security: plaintext lab-only vs bridge-level test encryption.
 - Long-term app namespace: register a `data_type` instead of using development `0xFFFF`.
 - Whether any later stock-compatible bitchat integration should embed/wrap upstream code, target a version-pinned API, or remain a separate bridge mode.
-- Whether Gate 5L should add a default-disabled service-level holder for the outbound wrapper, or stop for explicit Android device/emulator runtime approval first.
+- Whether Gate 5M should prepare only an Android runtime checklist or proceed to install/run on a named emulator/device after explicit approval.
