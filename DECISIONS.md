@@ -150,10 +150,16 @@ Decision: Android may contain a post-acceptance public-text hook in `MessageHand
 
 Rationale: This creates the smallest reversible inbound app->bridge tap after Android verification/policy while preserving app behavior: no BLE calls, no service sends, no UI setting, no runtime activation, and no stock compatibility claim. Tests prove both default no-op delivery and explicit injected-event behavior.
 
+## D026 — Gate 5K outbound wrapper remains callback-injected and disabled
+
+Decision: Android may include a `MeshBridgeOutboundPublicTextWrapper` for future MeshCore -> app public text, but it must default disabled and require an explicitly injected app sender callback. Gate 5K does not inject or call `BluetoothMeshService.sendMessage(...)`; that remains a separate runtime/app activation gate.
+
+Rationale: The wrapper validates bridge text and metadata before any app send callback and lets tests prove rejection/acceptance behavior without BLE, Android lifecycle, or service runtime side effects. Keeping `sendMessage(...)` uninjected avoids accidentally broadcasting bridge-originated content before device runtime approval.
+
 ## Pending decisions
 
 - Test hardware: which MeshCore-supported boards.
 - MVP security: plaintext lab-only vs bridge-level test encryption.
 - Long-term app namespace: register a `data_type` instead of using development `0xFFFF`.
 - Whether any later stock-compatible bitchat integration should embed/wrap upstream code, target a version-pinned API, or remain a separate bridge mode.
-- Whether Gate 5K should add a default-disabled outbound wrapper around `BluetoothMeshService.sendMessage(...)`, or stop for explicit Android device/emulator runtime approval first.
+- Whether Gate 5L should add a default-disabled service-level holder for the outbound wrapper, or stop for explicit Android device/emulator runtime approval first.
