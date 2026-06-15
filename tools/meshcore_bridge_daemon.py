@@ -267,6 +267,17 @@ def _build_stock_channel_text_command(text: str, channel_index: int, timestamp: 
     return b"\x03\x00" + channel_index.to_bytes(1, "little") + int(timestamp).to_bytes(4, "little") + text.encode("utf-8")
 
 
+def _should_relay_stock_text(message: dict[str, object], relay_prefix: str) -> tuple[bool, str]:
+    text = message.get("text")
+    if not isinstance(text, str) or not text:
+        return False, "empty"
+    if message.get("message_scope") != "contact":
+        return False, "non_contact"
+    if relay_prefix and relay_prefix in text:
+        return False, "loop_guard"
+    return True, "ok"
+
+
 def _event(kind: str, **fields: object) -> dict[str, object]:
     return {"kind": kind, "ts_monotonic": time.monotonic(), **fields}
 
@@ -502,17 +513,15 @@ def run(args: argparse.Namespace) -> dict[str, object]:
                         )
                         if args.relay_stock_text:
                             text = meshcore_text.get("text")
-                            if not isinstance(text, str) or not text:
-                                relay_skipped_count += 1
-                                record("relay_stock_text_skipped_empty", name=name, device=ports[name], frame_type=frame_type)
-                            elif text.startswith(args.relay_stock_text_prefix):
+                            should_relay, skip_reason = _should_relay_stock_text(meshcore_text, args.relay_stock_text_prefix)
+                            if not should_relay:
                                 relay_skipped_count += 1
                                 record(
-                                    "relay_stock_text_skipped_loop_guard",
+                                    f"relay_stock_text_skipped_{skip_reason}",
                                     name=name,
                                     device=ports[name],
                                     frame_type=frame_type,
-                                    text=text,
+                                    text=text if isinstance(text, str) else None,
                                 )
                             else:
                                 dedupe_key = _stock_text_dedupe_key(meshcore_text)

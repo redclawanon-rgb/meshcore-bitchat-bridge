@@ -141,6 +141,21 @@ class MeshCoreBridgeDaemonCliTests(unittest.TestCase):
 
         self.assertEqual(command, b"\x03\x00\x01" + (12345).to_bytes(4, "little") + b"[relay] hello")
 
+    def test_relay_policy_only_relays_unprefixed_contact_messages(self):
+        contact = meshcore_bridge_daemon._parse_meshcore_text_message(
+            bytes.fromhex("07769b8ca6fe830000824d2f6a546573742066726f6d2033")
+        )
+        channel: dict[str, object] = {
+            "message_scope": "channel",
+            "text": "D0521521: [relay] Test from 3",
+        }
+        prefixed_contact = dict(contact or {})
+        prefixed_contact["text"] = "[relay] Test from 3"
+
+        self.assertEqual(meshcore_bridge_daemon._should_relay_stock_text(contact or {}, "[relay] "), (True, "ok"))
+        self.assertEqual(meshcore_bridge_daemon._should_relay_stock_text(channel, "[relay] "), (False, "non_contact"))
+        self.assertEqual(meshcore_bridge_daemon._should_relay_stock_text(prefixed_contact, "[relay] "), (False, "loop_guard"))
+
 
 if __name__ == "__main__":
     unittest.main()
