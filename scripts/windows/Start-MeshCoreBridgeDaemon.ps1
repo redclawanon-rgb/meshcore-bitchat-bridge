@@ -12,6 +12,8 @@ param(
     [double]$PollIntervalSeconds = 0.05,
     [double]$ReconnectIntervalSeconds = 2.0,
     [string[]]$InjectText = @(),
+    [switch]$RelayStockText,
+    [string]$RelayStockTextPrefix = "[relay] ",
     [switch]$OpenRealPorts
 )
 
@@ -64,6 +66,10 @@ foreach ($item in $InjectText) {
     $daemonArgs += @("--inject-text", $item)
 }
 
+if ($RelayStockText) {
+    $daemonArgs += @("--relay-stock-text", "--relay-stock-text-prefix", $RelayStockTextPrefix)
+}
+
 if ($OpenRealPorts) {
     $daemonArgs += "--open-real-ports"
 }
@@ -87,6 +93,8 @@ $plan = [ordered]@{
     duration_seconds = $DurationSeconds
     poll_interval_seconds = $PollIntervalSeconds
     reconnect_interval_seconds = $ReconnectIntervalSeconds
+    relay_stock_text = [bool]$RelayStockText
+    relay_stock_text_prefix = $RelayStockTextPrefix
 }
 $plan | ConvertTo-Json -Depth 5
 

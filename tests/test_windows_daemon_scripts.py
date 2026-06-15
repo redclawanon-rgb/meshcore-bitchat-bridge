@@ -21,6 +21,9 @@ class WindowsDaemonScriptTests(unittest.TestCase):
         self.assertIn("[string]$Pocket3Port = \"\"", text)
         self.assertIn('"--port", "pocket3=$Pocket3Port"', text)
         self.assertIn("$ports.pocket3 = $Pocket3Port", text)
+        self.assertIn("[switch]$RelayStockText", text)
+        self.assertIn('"--relay-stock-text"', text)
+        self.assertIn('"--relay-stock-text-prefix", $RelayStockTextPrefix', text)
 
     def test_scheduled_task_installer_requires_explicit_live_enable(self):
         text = INSTALL_SCRIPT.read_text(encoding="utf-8")
@@ -33,6 +36,9 @@ class WindowsDaemonScriptTests(unittest.TestCase):
         self.assertIn("[string]$Pocket3Port = \"\"", text)
         self.assertIn('"-Pocket3Port", (Quote-TaskArg $Pocket3Port)', text)
         self.assertIn("$summaryPorts.pocket3 = $Pocket3Port", text)
+        self.assertIn("[switch]$EnableStockTextRelay", text)
+        self.assertIn('"-RelayStockText"', text)
+        self.assertIn('"-RelayStockTextPrefix", (Quote-TaskArg $RelayStockTextPrefix)', text)
         self.assertIn("New-ScheduledTaskTrigger -AtLogOn", text)
         self.assertIn("Register-ScheduledTask", text)
         self.assertIn("-RestartCount 999", text)

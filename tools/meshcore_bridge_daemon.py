@@ -81,6 +81,16 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="required to open serial ports; default is dry-run/no-open",
     )
+    parser.add_argument(
+        "--relay-stock-text",
+        action="store_true",
+        help="relay decoded stock MeshCore text messages out the other configured ports; disabled by default",
+    )
+    parser.add_argument(
+        "--relay-stock-text-prefix",
+        default="[relay] ",
+        help="prefix added to relayed stock text and used as a loop guard",
+    )
     return parser
 
 
@@ -237,6 +247,26 @@ def _parse_meshcore_text_message(frame: bytes) -> dict[str, object] | None:
     return None
 
 
+def _stock_text_dedupe_key(message: dict[str, object]) -> tuple[object, ...]:
+    return (
+        message.get("message_scope"),
+        message.get("pubkey_prefix"),
+        message.get("channel_idx"),
+        message.get("sender_timestamp"),
+        message.get("txt_type"),
+        message.get("text"),
+    )
+
+
+def _build_stock_channel_text_command(text: str, channel_index: int, timestamp: int | None = None) -> bytes:
+    """Build MeshCore CMD_SEND_CHANNEL_TXT_MSG for stock text relay."""
+    if not 0 <= channel_index <= 255:
+        raise ValueError("channel index must fit in one byte")
+    if timestamp is None:
+        timestamp = int(time.time())
+    return b"\x03\x00" + channel_index.to_bytes(1, "little") + int(timestamp).to_bytes(4, "little") + text.encode("utf-8")
+
+
 def _event(kind: str, **fields: object) -> dict[str, object]:
     return {"kind": kind, "ts_monotonic": time.monotonic(), **fields}
 
@@ -316,6 +346,8 @@ def run(args: argparse.Namespace) -> dict[str, object]:
         "event_log": args.event_log,
         "state_file": args.state_file,
         "injection_count": len(injections),
+        "relay_stock_text": bool(args.relay_stock_text),
+        "relay_stock_text_prefix": args.relay_stock_text_prefix,
         "events": [],
     }
     events: list[dict[str, object]] = result["events"]  # type: ignore[assignment]
@@ -329,6 +361,9 @@ def run(args: argparse.Namespace) -> dict[str, object]:
     delivered_count = 0
     parse_error_count = 0
     reconnect_count = 0
+    relay_sent_count = 0
+    relay_skipped_count = 0
+    relayed_stock_text_keys: set[tuple[object, ...]] = set()
 
     try:
         record("daemon_plan", ports=ports, injections=injections, state_loaded=bool(state))
@@ -337,6 +372,8 @@ def run(args: argparse.Namespace) -> dict[str, object]:
             result["delivered_count"] = 0
             result["parse_error_count"] = 0
             result["reconnect_count"] = 0
+            result["relay_sent_count"] = 0
+            result["relay_skipped_count"] = 0
             return result
 
         try:
@@ -463,6 +500,68 @@ def run(args: argparse.Namespace) -> dict[str, object]:
                             frame_type=frame_type,
                             **meshcore_text,
                         )
+                        if args.relay_stock_text:
+                            text = meshcore_text.get("text")
+                            if not isinstance(text, str) or not text:
+                                relay_skipped_count += 1
+                                record("relay_stock_text_skipped_empty", name=name, device=ports[name], frame_type=frame_type)
+                            elif text.startswith(args.relay_stock_text_prefix):
+                                relay_skipped_count += 1
+                                record(
+                                    "relay_stock_text_skipped_loop_guard",
+                                    name=name,
+                                    device=ports[name],
+                                    frame_type=frame_type,
+                                    text=text,
+                                )
+                            else:
+                                dedupe_key = _stock_text_dedupe_key(meshcore_text)
+                                if dedupe_key in relayed_stock_text_keys:
+                                    relay_skipped_count += 1
+                                    record(
+                                        "relay_stock_text_skipped_duplicate",
+                                        name=name,
+                                        device=ports[name],
+                                        frame_type=frame_type,
+                                        dedupe_key=[str(part) for part in dedupe_key],
+                                        text=text,
+                                    )
+                                else:
+                                    relayed_stock_text_keys.add(dedupe_key)
+                                    relay_text = args.relay_stock_text_prefix + text
+                                    command = _build_stock_channel_text_command(relay_text, args.channel)
+                                    target_count = 0
+                                    for relay_name, relay_ser in serials.items():
+                                        if relay_name == name or relay_ser is None:
+                                            continue
+                                        try:
+                                            relay_ser.write(wrap_serial_tx_packet(command))  # type: ignore[attr-defined]
+                                            target_count += 1
+                                            relay_sent_count += 1
+                                            record(
+                                                "relay_stock_text_sent",
+                                                source=name,
+                                                target=relay_name,
+                                                source_device=ports[name],
+                                                target_device=ports[relay_name],
+                                                channel_index=args.channel,
+                                                text=relay_text,
+                                                command_hex=command.hex(),
+                                            )
+                                        except Exception as exc:
+                                            relay_skipped_count += 1
+                                            record(
+                                                "relay_stock_text_error",
+                                                source=name,
+                                                target=relay_name,
+                                                source_device=ports[name],
+                                                target_device=ports[relay_name],
+                                                error={"type": type(exc).__name__, "message": str(exc)},
+                                            )
+                                            close_port(relay_name, "relay_stock_text_error")
+                                    if target_count == 0:
+                                        relay_skipped_count += 1
+                                        record("relay_stock_text_skipped_no_targets", name=name, device=ports[name], text=text)
                     if _should_poll_sync_next_after_frame(frame_type):
                         try:
                             ser.write(wrap_serial_tx_packet(b"\x0a"))  # type: ignore[attr-defined]
@@ -493,6 +592,8 @@ def run(args: argparse.Namespace) -> dict[str, object]:
     result["delivered_count"] = delivered_count
     result["parse_error_count"] = parse_error_count
     result["reconnect_count"] = reconnect_count
+    result["relay_sent_count"] = relay_sent_count
+    result["relay_skipped_count"] = relay_skipped_count
     return result
 
 

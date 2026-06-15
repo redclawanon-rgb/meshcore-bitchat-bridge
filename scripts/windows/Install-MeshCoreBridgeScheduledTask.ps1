@@ -12,6 +12,8 @@ param(
     [double]$DurationSeconds = 31536000,
     [double]$ReconnectIntervalSeconds = 2.0,
     [string[]]$InjectText = @(),
+    [switch]$EnableStockTextRelay,
+    [string]$RelayStockTextPrefix = "[relay] ",
     [switch]$EnableRealPorts,
     [switch]$StartNow
 )
@@ -61,6 +63,9 @@ if ($InjectText.Count -gt 0) {
     }
     $argumentList += @("-InjectText", ($quotedInjectText -join ","))
 }
+if ($EnableStockTextRelay) {
+    $argumentList += @("-RelayStockText", "-RelayStockTextPrefix", (Quote-TaskArg $RelayStockTextPrefix))
+}
 if ($EnableRealPorts) {
     $argumentList += "-OpenRealPorts"
 }
@@ -96,6 +101,8 @@ $summary = [ordered]@{
     ports = $summaryPorts
     log_root = $LogRoot
     inject_count = $InjectText.Count
+    relay_stock_text = [bool]$EnableStockTextRelay
+    relay_stock_text_prefix = $RelayStockTextPrefix
     start_now = [bool]$StartNow
 }
 $summary | ConvertTo-Json -Depth 5

@@ -28,9 +28,12 @@ class MeshCoreBridgeDaemonCliTests(unittest.TestCase):
         self.assertEqual(payload["mode"], "dry-run-no-ports-opened")
         self.assertEqual(payload["ports"], {"pocket1": "COM5", "pocket2": "COM8"})
         self.assertEqual(payload["injection_count"], 1)
+        self.assertFalse(payload["relay_stock_text"])
         self.assertEqual(payload["delivered_count"], 0)
         self.assertEqual(payload["parse_error_count"], 0)
         self.assertEqual(payload["reconnect_count"], 0)
+        self.assertEqual(payload["relay_sent_count"], 0)
+        self.assertEqual(payload["relay_skipped_count"], 0)
         self.assertEqual(payload["events"][0]["kind"], "daemon_plan")
 
     def test_dry_run_writes_jsonl_event_log(self):
@@ -120,6 +123,23 @@ class MeshCoreBridgeDaemonCliTests(unittest.TestCase):
                 "text": "hello channel",
             },
         )
+
+    def test_stock_text_dedupe_key_collapses_duplicate_receives(self):
+        left = meshcore_bridge_daemon._parse_meshcore_text_message(
+            bytes.fromhex("07769b8ca6fe830000824d2f6a546573742066726f6d2033")
+        )
+        self.assertIsNotNone(left)
+        right = dict(left or {})
+
+        self.assertEqual(
+            meshcore_bridge_daemon._stock_text_dedupe_key(left or {}),
+            meshcore_bridge_daemon._stock_text_dedupe_key(right),
+        )
+
+    def test_build_stock_channel_text_command(self):
+        command = meshcore_bridge_daemon._build_stock_channel_text_command("[relay] hello", 1, timestamp=12345)
+
+        self.assertEqual(command, b"\x03\x00\x01" + (12345).to_bytes(4, "little") + b"[relay] hello")
 
 
 if __name__ == "__main__":
