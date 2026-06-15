@@ -10,6 +10,7 @@ param(
     [string]$LogRoot = "$env:LOCALAPPDATA\MeshCoreBitchatBridge",
     [double]$DurationSeconds = 31536000,
     [double]$ReconnectIntervalSeconds = 2.0,
+    [string[]]$InjectText = @(),
     [switch]$EnableRealPorts,
     [switch]$StartNow
 )
@@ -49,6 +50,9 @@ $argumentList = @(
     "-DurationSeconds", ([string]$DurationSeconds),
     "-ReconnectIntervalSeconds", ([string]$ReconnectIntervalSeconds)
 )
+foreach ($item in $InjectText) {
+    $argumentList += @("-InjectText", (Quote-TaskArg $item))
+}
 if ($EnableRealPorts) {
     $argumentList += "-OpenRealPorts"
 }
@@ -78,6 +82,7 @@ $summary = [ordered]@{
     restart_count = 999
     ports = [ordered]@{ pocket1 = $Pocket1Port; pocket2 = $Pocket2Port }
     log_root = $LogRoot
+    inject_count = $InjectText.Count
     start_now = [bool]$StartNow
 }
 $summary | ConvertTo-Json -Depth 5

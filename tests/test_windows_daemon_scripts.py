@@ -24,6 +24,8 @@ class WindowsDaemonScriptTests(unittest.TestCase):
         self.assertIn("[switch]$EnableRealPorts", text)
         self.assertIn("if ($EnableRealPorts)", text)
         self.assertIn('"-OpenRealPorts"', text)
+        self.assertIn("[string[]]$InjectText = @()", text)
+        self.assertIn('"-InjectText", (Quote-TaskArg $item)', text)
         self.assertIn("New-ScheduledTaskTrigger -AtLogOn", text)
         self.assertIn("Register-ScheduledTask", text)
         self.assertIn("-RestartCount 999", text)
