@@ -162,10 +162,16 @@ Decision: Android debug APK packaging may be used as a local compile/package pre
 
 Rationale: `:app:assembleDebug` catches packaging and manifest/resource issues that unit tests do not, while avoiding runtime side effects. It is the safest final local preflight before device/emulator approval.
 
+## D028 — Gate 5M requires explicit target before Android install/run
+
+Decision: Android runtime testing is now gated on Eric naming the target path: emulator/no-radio launch, physical-device launch, physical BLE smoke, or local-only continuation. The safest default recommendation is emulator/no-radio install + launch only. No APK install/run should happen until the target and scope are explicit.
+
+Rationale: Debug APK packaging is proven, but runtime can touch app permissions, Bluetooth, device identifiers, logs, and possibly nearby radios. A named target and scope keeps this reversible and avoids accidental BLE/message-path activation.
+
 ## Pending decisions
 
 - Test hardware: which MeshCore-supported boards.
 - MVP security: plaintext lab-only vs bridge-level test encryption.
 - Long-term app namespace: register a `data_type` instead of using development `0xFFFF`.
 - Whether any later stock-compatible bitchat integration should embed/wrap upstream code, target a version-pinned API, or remain a separate bridge mode.
-- Whether Gate 5M should prepare only an Android runtime checklist or proceed to install/run on a named emulator/device after explicit approval.
+- Gate 5N runtime target: emulator/no-radio, physical install/launch only, physical BLE smoke, or local-only continuation.
