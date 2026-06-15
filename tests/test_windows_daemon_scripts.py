@@ -18,6 +18,9 @@ class WindowsDaemonScriptTests(unittest.TestCase):
         self.assertIn('"--state-file", $StateFile', text)
         self.assertIn('"--port", "pocket1=$Pocket1Port"', text)
         self.assertIn('"--port", "pocket2=$Pocket2Port"', text)
+        self.assertIn("[string]$Pocket3Port = \"\"", text)
+        self.assertIn('"--port", "pocket3=$Pocket3Port"', text)
+        self.assertIn("$ports.pocket3 = $Pocket3Port", text)
 
     def test_scheduled_task_installer_requires_explicit_live_enable(self):
         text = INSTALL_SCRIPT.read_text(encoding="utf-8")
@@ -26,6 +29,9 @@ class WindowsDaemonScriptTests(unittest.TestCase):
         self.assertIn('"-OpenRealPorts"', text)
         self.assertIn("[string[]]$InjectText = @()", text)
         self.assertIn('"-InjectText", (Quote-TaskArg $item)', text)
+        self.assertIn("[string]$Pocket3Port = \"\"", text)
+        self.assertIn('"-Pocket3Port", (Quote-TaskArg $Pocket3Port)', text)
+        self.assertIn("$summaryPorts.pocket3 = $Pocket3Port", text)
         self.assertIn("New-ScheduledTaskTrigger -AtLogOn", text)
         self.assertIn("Register-ScheduledTask", text)
         self.assertIn("-RestartCount 999", text)

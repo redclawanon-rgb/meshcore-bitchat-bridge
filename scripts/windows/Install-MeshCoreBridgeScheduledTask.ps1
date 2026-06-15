@@ -7,6 +7,7 @@ param(
     [string]$PythonExe = "C:\Users\station1\AppData\Local\Programs\Python\Python311\python.exe",
     [string]$Pocket1Port = "COM5",
     [string]$Pocket2Port = "COM8",
+    [string]$Pocket3Port = "",
     [string]$LogRoot = "$env:LOCALAPPDATA\MeshCoreBitchatBridge",
     [double]$DurationSeconds = 31536000,
     [double]$ReconnectIntervalSeconds = 2.0,
@@ -50,6 +51,9 @@ $argumentList = @(
     "-DurationSeconds", ([string]$DurationSeconds),
     "-ReconnectIntervalSeconds", ([string]$ReconnectIntervalSeconds)
 )
+if ($Pocket3Port) {
+    $argumentList += @("-Pocket3Port", (Quote-TaskArg $Pocket3Port))
+}
 foreach ($item in $InjectText) {
     $argumentList += @("-InjectText", (Quote-TaskArg $item))
 }
@@ -70,6 +74,11 @@ $settings = New-ScheduledTaskSettingsSet `
     -StartWhenAvailable
 $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited
 
+$summaryPorts = [ordered]@{ pocket1 = $Pocket1Port; pocket2 = $Pocket2Port }
+if ($Pocket3Port) {
+    $summaryPorts.pocket3 = $Pocket3Port
+}
+
 $summary = [ordered]@{
     type = "meshcore_bridge_scheduled_task_plan_v0"
     task_name = $TaskName
@@ -80,7 +89,7 @@ $summary = [ordered]@{
     trigger = "AtLogOn"
     restart_interval = "PT1M"
     restart_count = 999
-    ports = [ordered]@{ pocket1 = $Pocket1Port; pocket2 = $Pocket2Port }
+    ports = $summaryPorts
     log_root = $LogRoot
     inject_count = $InjectText.Count
     start_now = [bool]$StartNow

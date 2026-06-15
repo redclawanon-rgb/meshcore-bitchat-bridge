@@ -6,6 +6,7 @@ param(
     [string]$PythonExe = "C:\Users\station1\AppData\Local\Programs\Python\Python311\python.exe",
     [string]$Pocket1Port = "COM5",
     [string]$Pocket2Port = "COM8",
+    [string]$Pocket3Port = "",
     [string]$LogRoot = "$env:LOCALAPPDATA\MeshCoreBitchatBridge",
     [double]$DurationSeconds = 31536000,
     [double]$PollIntervalSeconds = 0.05,
@@ -55,6 +56,9 @@ $daemonArgs = @(
     "--poll-interval-seconds", ([string]$PollIntervalSeconds),
     "--reconnect-interval-seconds", ([string]$ReconnectIntervalSeconds)
 )
+if ($Pocket3Port) {
+    $daemonArgs += @("--port", "pocket3=$Pocket3Port")
+}
 
 foreach ($item in $InjectText) {
     $daemonArgs += @("--inject-text", $item)
@@ -64,13 +68,18 @@ if ($OpenRealPorts) {
     $daemonArgs += "--open-real-ports"
 }
 
+$ports = [ordered]@{ pocket1 = $Pocket1Port; pocket2 = $Pocket2Port }
+if ($Pocket3Port) {
+    $ports.pocket3 = $Pocket3Port
+}
+
 $plan = [ordered]@{
     type = "meshcore_bridge_windows_launcher_v0"
     mode = $(if ($OpenRealPorts) { "real-ports-requested" } else { "dry-run-no-ports-opened" })
     repo_path = $RepoPath
     python = $PythonExe
     daemon = $DaemonPath
-    ports = [ordered]@{ pocket1 = $Pocket1Port; pocket2 = $Pocket2Port }
+    ports = $ports
     event_log = $EventLog
     state_file = $StateFile
     stdout_log = $StdoutLog
