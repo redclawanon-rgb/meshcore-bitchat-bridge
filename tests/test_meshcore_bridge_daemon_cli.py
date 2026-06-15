@@ -76,7 +76,50 @@ class MeshCoreBridgeDaemonCliTests(unittest.TestCase):
     def test_polls_after_unknown_sync_next_response(self):
         self.assertTrue(meshcore_bridge_daemon._should_poll_sync_next_after_frame("unknown_0x08"))
         self.assertTrue(meshcore_bridge_daemon._should_poll_sync_next_after_frame("channel_data_recv"))
+        self.assertTrue(meshcore_bridge_daemon._should_poll_sync_next_after_frame("contact_msg_recv"))
+        self.assertFalse(meshcore_bridge_daemon._should_poll_sync_next_after_frame("path_update"))
         self.assertFalse(meshcore_bridge_daemon._should_poll_sync_next_after_frame("no_more_messages"))
+
+    def test_classifies_stock_meshcore_message_frames(self):
+        self.assertEqual(
+            meshcore_bridge_daemon._classify_frame(bytes.fromhex("07769b8ca6fe830000824d2f6a546573742066726f6d2033")),
+            "contact_msg_recv",
+        )
+        self.assertEqual(meshcore_bridge_daemon._classify_frame(bytes.fromhex("81769b8ca6")), "path_update")
+
+    def test_parses_stock_meshcore_contact_text_message_from_iphone(self):
+        frame = bytes.fromhex("07769b8ca6fe830000824d2f6a546573742066726f6d2033")
+        parsed = meshcore_bridge_daemon._parse_meshcore_text_message(frame)
+
+        self.assertEqual(
+            parsed,
+            {
+                "message_scope": "contact",
+                "pubkey_prefix": "769b8ca6fe83",
+                "path_hash_mode": 0,
+                "path_len": 0,
+                "txt_type": 0,
+                "sender_timestamp": 1781484930,
+                "text": "Test from 3",
+            },
+        )
+
+    def test_parses_stock_meshcore_channel_text_message(self):
+        frame = b"\x08\x01\x00\x00" + (12345).to_bytes(4, "little") + b"hello channel"
+        parsed = meshcore_bridge_daemon._parse_meshcore_text_message(frame)
+
+        self.assertEqual(
+            parsed,
+            {
+                "message_scope": "channel",
+                "channel_idx": 1,
+                "path_hash_mode": 0,
+                "path_len": 0,
+                "txt_type": 0,
+                "sender_timestamp": 12345,
+                "text": "hello channel",
+            },
+        )
 
 
 if __name__ == "__main__":

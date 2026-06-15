@@ -123,8 +123,13 @@ def _classify_frame(frame: bytes) -> str:
     return {
         0x00: "ok",
         0x01: "error",
+        0x07: "contact_msg_recv",
+        0x08: "channel_msg_recv",
         0x0A: "no_more_messages",
+        0x10: "contact_msg_recv_v3",
+        0x11: "channel_msg_recv_v3",
         0x1B: "channel_data_recv",
+        0x81: "path_update",
         0x83: "msg_waiting",
         0x88: "log_rx_data",
     }.get(frame[0], f"unknown_0x{frame[0]:02x}")
@@ -137,7 +142,99 @@ def _should_poll_sync_next_after_frame(frame_type: str) -> bool:
     datagram we care about. Keep polling after unknown sync-next responses so a
     daemon does not stop at the first unrelated queued message.
     """
-    return frame_type == "channel_data_recv" or frame_type.startswith("unknown_")
+    return frame_type in {
+        "channel_data_recv",
+        "contact_msg_recv",
+        "channel_msg_recv",
+        "contact_msg_recv_v3",
+        "channel_msg_recv_v3",
+    } or frame_type.startswith("unknown_")
+
+
+def _path_len_info(plen: int) -> dict[str, int]:
+    if plen == 255:
+        return {"path_hash_mode": -1, "path_len": -1}
+    return {"path_hash_mode": plen >> 6, "path_len": plen & 0x3F}
+
+
+def _parse_meshcore_text_message(frame: bytes) -> dict[str, object] | None:
+    """Parse stock MeshCore text-message sync-next responses.
+
+    The bridge's own payload uses CHANNEL_DATA_RECV (0x1B). Stock MeshCore app
+    text messages arrive from CMD_SYNC_NEXT_MESSAGE as CONTACT_MSG_RECV (0x07),
+    CHANNEL_MSG_RECV (0x08), or their v3 variants (0x10/0x11). This lightweight
+    parser mirrors meshcore_py's documented reader layout enough to log clean
+    text events without taking ownership of the full MeshCore contact database.
+    """
+    if len(frame) < 2:
+        return None
+    packet_type = frame[0]
+    try:
+        if packet_type == 0x07:  # CONTACT_MSG_RECV
+            if len(frame) < 13:
+                return None
+            plen = frame[7]
+            txt_type = frame[8]
+            sender_timestamp = int.from_bytes(frame[9:13], "little", signed=False)
+            text_start = 17 if txt_type == 2 and len(frame) >= 17 else 13
+            return {
+                "message_scope": "contact",
+                "pubkey_prefix": frame[1:7].hex(),
+                **_path_len_info(plen),
+                "txt_type": txt_type,
+                "sender_timestamp": sender_timestamp,
+                "text": frame[text_start:].decode("utf-8", "ignore").rstrip("\x00"),
+            }
+        if packet_type == 0x08:  # CHANNEL_MSG_RECV
+            if len(frame) < 9:
+                return None
+            plen = frame[2]
+            txt_type = frame[3]
+            sender_timestamp = int.from_bytes(frame[4:8], "little", signed=False)
+            return {
+                "message_scope": "channel",
+                "channel_idx": frame[1],
+                **_path_len_info(plen),
+                "txt_type": txt_type,
+                "sender_timestamp": sender_timestamp,
+                "text": frame[8:].decode("utf-8", "ignore").rstrip("\x00"),
+            }
+        if packet_type == 0x10:  # CONTACT_MSG_RECV_V3
+            if len(frame) < 16:
+                return None
+            plen = frame[10]
+            txt_type = frame[11]
+            sender_timestamp = int.from_bytes(frame[12:16], "little", signed=False)
+            text_start = 20 if txt_type == 2 and len(frame) >= 20 else 16
+            return {
+                "message_scope": "contact",
+                "protocol_version": 3,
+                "snr": int.from_bytes(frame[1:2], "little", signed=True) / 4,
+                "pubkey_prefix": frame[4:10].hex(),
+                **_path_len_info(plen),
+                "txt_type": txt_type,
+                "sender_timestamp": sender_timestamp,
+                "text": frame[text_start:].decode("utf-8", "ignore").rstrip("\x00"),
+            }
+        if packet_type == 0x11:  # CHANNEL_MSG_RECV_V3
+            if len(frame) < 12:
+                return None
+            plen = frame[5]
+            txt_type = frame[6]
+            sender_timestamp = int.from_bytes(frame[7:11], "little", signed=False)
+            return {
+                "message_scope": "channel",
+                "protocol_version": 3,
+                "snr": int.from_bytes(frame[1:2], "little", signed=True) / 4,
+                "channel_idx": frame[4],
+                **_path_len_info(plen),
+                "txt_type": txt_type,
+                "sender_timestamp": sender_timestamp,
+                "text": frame[11:].decode("utf-8", "ignore").rstrip("\x00"),
+            }
+    except UnicodeDecodeError:
+        return None
+    return None
 
 
 def _event(kind: str, **fields: object) -> dict[str, object]:
@@ -356,6 +453,16 @@ def run(args: argparse.Namespace) -> dict[str, object]:
                         except BridgeFrameError as exc:
                             parse_error_count += 1
                             frame_event["parse_error"] = {"type": type(exc).__name__, "message": str(exc)}
+                    meshcore_text = _parse_meshcore_text_message(frame)
+                    if meshcore_text is not None:
+                        frame_event["meshcore_text"] = meshcore_text
+                        record(
+                            "meshcore_text_message",
+                            name=name,
+                            device=ports[name],
+                            frame_type=frame_type,
+                            **meshcore_text,
+                        )
                     if _should_poll_sync_next_after_frame(frame_type):
                         try:
                             ser.write(wrap_serial_tx_packet(b"\x0a"))  # type: ignore[attr-defined]
