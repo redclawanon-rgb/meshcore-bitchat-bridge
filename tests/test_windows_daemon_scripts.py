@@ -29,7 +29,7 @@ class WindowsDaemonScriptTests(unittest.TestCase):
         self.assertIn('"-OpenRealPorts"', text)
         self.assertIn("[string[]]$InjectText = @()", text)
         self.assertIn('"-InjectText"', text)
-        self.assertIn('argumentList += (Quote-TaskArg $item)', text)
+        self.assertIn('$quotedInjectText -join ","', text)
         self.assertIn("[string]$Pocket3Port = \"\"", text)
         self.assertIn('"-Pocket3Port", (Quote-TaskArg $Pocket3Port)', text)
         self.assertIn("$summaryPorts.pocket3 = $Pocket3Port", text)

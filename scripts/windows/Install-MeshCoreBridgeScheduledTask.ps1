@@ -55,10 +55,11 @@ if ($Pocket3Port) {
     $argumentList += @("-Pocket3Port", (Quote-TaskArg $Pocket3Port))
 }
 if ($InjectText.Count -gt 0) {
-    $argumentList += "-InjectText"
+    $quotedInjectText = @()
     foreach ($item in $InjectText) {
-        $argumentList += (Quote-TaskArg $item)
+        $quotedInjectText += (Quote-TaskArg $item)
     }
+    $argumentList += @("-InjectText", ($quotedInjectText -join ","))
 }
 if ($EnableRealPorts) {
     $argumentList += "-OpenRealPorts"
