@@ -120,9 +120,16 @@ Decision: The Windows persistence wrapper uses a Scheduled Task and a PowerShell
 
 Rationale: The MeshCore daemon is now useful enough to persist/restart on Eric's Windows desktop, but serial access should remain visible and explicit. The scheduled-task wrapper preserves JSONL event logging, state-file message ID persistence, COM5/COM8 port naming, and restart behavior without silently opening hardware during dry-run validation.
 
+## D021 — Gate 5F Android-first app integration path; defer Mac/Xcode
+
+Decision: Continue app-side integration through an Android-first disabled/debug adapter stub, and save Mac/Xcode-dependent iOS build/runtime work for late project stages or a rented Mac VPS. The next executable app gate is Gate 5G: add a default-disabled Kotlin adapter contract in the local Android checkout, with no BLE/message-path wiring unless separately approved.
+
+Rationale: The iOS Gate 5E source stub exists, but full Xcode verification is blocked by the currently available Mac toolchain. Android has already mapped semantic receive/send insertion points and can likely be compiled/tested in a Linux Android SDK/CI environment after Java/SDK tooling is established. Android-first keeps progress moving while preserving the platform-neutral Gate 5D contract and avoiding premature stock compatibility or mobile BLE claims.
+
 ## Pending decisions
 
 - Test hardware: which MeshCore-supported boards.
 - MVP security: plaintext lab-only vs bridge-level test encryption.
 - Long-term app namespace: register a `data_type` instead of using development `0xFFFF`.
 - Whether any later stock-compatible bitchat integration should embed/wrap upstream code, target a version-pinned API, or remain a separate bridge mode.
+- Android build environment for Gate 5G: install local JDK/Android SDK on the VPS, use CI, or use another Linux build host.
