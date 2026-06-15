@@ -168,10 +168,16 @@ Decision: Android runtime testing is now gated on Eric naming the target path: e
 
 Rationale: Debug APK packaging is proven, but runtime can touch app permissions, Bluetooth, device identifiers, logs, and possibly nearby radios. A named target and scope keeps this reversible and avoids accidental BLE/message-path activation.
 
+## D029 — Gate 5N runtime must move off this VPS emulator
+
+Decision: Android emulator runtime is not a reliable target on this VPS for Gate 5N because `/dev/kvm` is missing, CPU virtualization flags are not exposed, and software-emulated API 30/35 AVDs failed before APK install/launch. Continue runtime testing on a connected physical Android device or a machine/VM with KVM/hardware virtualization exposed.
+
+Rationale: The VPS can build and package the APK, but Android system services failed during emulator boot, causing PackageInstaller null-pointer failures and `DeadSystemException`. Continuing emulator retries here would be low-value and risks noisy, misleading results.
+
 ## Pending decisions
 
 - Test hardware: which MeshCore-supported boards.
 - MVP security: plaintext lab-only vs bridge-level test encryption.
 - Long-term app namespace: register a `data_type` instead of using development `0xFFFF`.
 - Whether any later stock-compatible bitchat integration should embed/wrap upstream code, target a version-pinned API, or remain a separate bridge mode.
-- Gate 5N runtime target: emulator/no-radio, physical install/launch only, physical BLE smoke, or local-only continuation.
+- Gate 5O runtime target: connected physical Android device or a different KVM-capable emulator host.
