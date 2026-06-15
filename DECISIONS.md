@@ -126,10 +126,34 @@ Decision: Continue app-side integration through an Android-first disabled/debug 
 
 Rationale: The iOS Gate 5E source stub exists, but full Xcode verification is blocked by the currently available Mac toolchain. Android has already mapped semantic receive/send insertion points and can likely be compiled/tested in a Linux Android SDK/CI environment after Java/SDK tooling is established. Android-first keeps progress moving while preserving the platform-neutral Gate 5D contract and avoiding premature stock compatibility or mobile BLE claims.
 
+## D022 — Gate 5G Android adapter remains disabled/debug-only
+
+Decision: The Android app-side adapter starts as a disabled/debug-only Kotlin contract in `/tmp/bitchat-android`, not a live BLE or message-path integration. `DebugMeshBridgePublicTextAdapter` defaults to no inbound events and no outbound publish; tests may enable injected closures to prove the semantic event/publish shape only.
+
+Rationale: This mirrors the safe iOS Gate 5E pattern while avoiding Mac/Xcode blockers. It gives Android a compile-tested target for future hooks but does not alter BLE discovery, packet processing, `BluetoothMeshService.sendMessage(...)`, UI state, app lifecycle, signing, release behavior, or stock bitchat compatibility.
+
+## D023 — Gate 5H Android hook path stays mapper/wrapper-first
+
+Decision: The next Android code gate should add pure mapping and disabled wrapper seams before any live hook wiring. Preferred inbound mapping remains post-verification public text in `MessageHandler.handleBroadcastMessage(...)`; preferred outbound route is a narrow debug wrapper around app-owned public send behavior, but default-disabled and test-only until a later gate.
+
+Rationale: Re-inspection confirms Android already owns verification, file/private filtering, public text decode, packet IDs, signing, broadcast, and gossip sync. A mapper/wrapper-first approach keeps BLE/app lifecycle untouched while making future hook wiring small, reversible, and unit-testable.
+
+## D024 — Gate 5I mapper/wrapper seams remain non-live
+
+Decision: Android may now include a pure public-text mapper and disabled debug service wrapper as local seams, but they must remain non-live until a separate hook gate. The mapper can translate accepted `BitchatMessage` public text into `MeshBridgeVerifiedPublicTextEvent`; the wrapper delegates only to the debug adapter and does not call BLE or `BluetoothMeshService.sendMessage(...)`.
+
+Rationale: This gives a compile-tested path toward app integration while preserving the no-BLE/no-runtime/no-stock-claim boundary. It lets future live hook work be a small no-op/default-disabled patch instead of mixing mapping, validation, and runtime wiring in one risky step.
+
+## D025 — Gate 5J Android hook insertion remains disabled by default
+
+Decision: Android may contain a post-acceptance public-text hook in `MessageHandler.handleBroadcastMessage(...)` only if it defaults to a disabled `DebugMeshBridgePublicTextAdapter` and is test-injectable. The hook may map accepted plain public text and call `emitVerifiedPublicText(...)`, but normal app behavior must remain no-op unless a later gate explicitly enables runtime wiring.
+
+Rationale: This creates the smallest reversible inbound app->bridge tap after Android verification/policy while preserving app behavior: no BLE calls, no service sends, no UI setting, no runtime activation, and no stock compatibility claim. Tests prove both default no-op delivery and explicit injected-event behavior.
+
 ## Pending decisions
 
 - Test hardware: which MeshCore-supported boards.
 - MVP security: plaintext lab-only vs bridge-level test encryption.
 - Long-term app namespace: register a `data_type` instead of using development `0xFFFF`.
 - Whether any later stock-compatible bitchat integration should embed/wrap upstream code, target a version-pinned API, or remain a separate bridge mode.
-- Android build environment for Gate 5G: install local JDK/Android SDK on the VPS, use CI, or use another Linux build host.
+- Whether Gate 5K should add a default-disabled outbound wrapper around `BluetoothMeshService.sendMessage(...)`, or stop for explicit Android device/emulator runtime approval first.
