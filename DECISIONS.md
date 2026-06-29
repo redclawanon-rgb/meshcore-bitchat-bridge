@@ -174,6 +174,18 @@ Decision: Android emulator runtime is not a reliable target on this VPS for Gate
 
 Rationale: The VPS can build and package the APK, but Android system services failed during emulator boot, causing PackageInstaller null-pointer failures and `DeadSystemException`. Continuing emulator retries here would be low-value and risks noisy, misleading results.
 
+## D030 — First installable phone target is Android debug APK
+
+Decision: The first real installable cell-phone milestone targets a physical Android phone running a sideloaded debug APK. iOS, release signing, app-store distribution, public APK publishing, and production/user-facing release remain separate later gates.
+
+Rationale: Android has the least blocked path because disabled adapter/hook/wrapper seams and debug APK build evidence already exist, while iOS still depends on a compatible Mac/Xcode environment. A debug APK allows install/runtime evidence without implying production readiness or store distribution.
+
+## D031 — Bridge-enabled phone runtime must be explicit, bounded, and debug-only
+
+Decision: Phone bridge behavior must remain disabled by default and require explicit debug/developer enablement, visible warning text, bounded queues, redacted telemetry, and a selected phone-to-MeshCore transport before any bridge-enabled runtime smoke.
+
+Rationale: A phone install can be mistaken for a user-ready secure messenger. Keeping bridge activation explicit and bounded preserves the public-text-only/lab-only boundary while allowing real runtime progress.
+
 ## Pending decisions
 
 - Test hardware: which MeshCore-supported boards.

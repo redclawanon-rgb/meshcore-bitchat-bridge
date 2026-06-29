@@ -220,3 +220,14 @@ Before install/run, Eric should choose one:
 4. stop Android runtime and continue local-only bridge work.
 
 Default safest choice: option 1, emulator/no-radio install + launch only.
+
+## Gate 5O+ phone MVP build-spec links
+
+The next installable-phone work should use these planning specs before any further APK install/run or bridge-enabled runtime action:
+
+- `docs/phone-platform-scope.md` — declares Android physical-phone debug APK as the first phone target and defers iOS/release stores.
+- `docs/phone-runtime-architecture.md` — defines the selected Android debug-runtime architecture and the phone-to-MeshCore transport choices.
+- `docs/android-phone-mvp-acceptance.md` — defines install, disabled-safety, bridge-enabled debug, and two-endpoint acceptance levels.
+- `docs/android-packaging-plan.md` — defines debug APK packaging, ABI selection, build labels, and signing/distribution boundaries.
+- `docs/android-phone-security-boundary.md` — defines required debug warnings, log redaction boundaries, and security non-claims.
+- `docs/bridge-queueing-spec.md` — defines bounded queueing, retry, duplicate suppression, timeout, and telemetry requirements before bridge-enabled phone runtime.
