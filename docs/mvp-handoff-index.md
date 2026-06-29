@@ -64,6 +64,20 @@ python3 -m unittest discover -s tests -v
 
 Refreshes are explicit developer actions only. Do not add cron, nudge loops, autoloops, watchers, or other automation to refresh or enforce this fixture.
 
+
+### Phone MVP build spec
+
+The next installable-cell-phone target is an Android physical-phone debug APK, not iOS or public release packaging. The phone path is now specified across these docs:
+
+- `docs/phone-platform-scope.md` — first phone platform scope and deferred iOS/release-store work.
+- `docs/phone-runtime-architecture.md` — Android debug runtime architecture and transport choices.
+- `docs/android-phone-mvp-acceptance.md` — install, disabled-safety, bridge-enabled debug, and two-endpoint acceptance criteria.
+- `docs/android-packaging-plan.md` — debug APK packaging, ABI selection, version labels, and signing/distribution boundaries.
+- `docs/android-phone-security-boundary.md` — warning, log redaction, and security boundary requirements.
+- `docs/bridge-queueing-spec.md` — bounded queueing, duplicate suppression, retry, timeout, and telemetry requirements.
+
+Current readiness: this is a build specification for the remaining phone work. It does not install or run an APK, open BLE/serial, transmit LoRa traffic, publish artifacts, or claim production security/interoperability.
+
 ### Pre-hardware readiness and gated hardware path
 
 - `docs/pre-hardware-readiness.md` — exact local sequence before any future hardware request.

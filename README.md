@@ -105,6 +105,20 @@ Developer regression fixture:
 - The bitchat-side MVP seam is semantic public text only; these demos do not forge stock `BitchatPacket` bytes.
 - No stock bitchat app compatibility, interoperability, privacy, or production-security claims are made by these demos.
 
+
+## Phone MVP build spec
+
+The remaining path to a real installable cell-phone build is scoped as an Android physical-phone debug APK first. Start with:
+
+- `docs/phone-platform-scope.md`
+- `docs/phone-runtime-architecture.md`
+- `docs/android-phone-mvp-acceptance.md`
+- `docs/android-packaging-plan.md`
+- `docs/android-phone-security-boundary.md`
+- `docs/bridge-queueing-spec.md`
+
+These are planning/spec documents only. They do not install or run an APK, open BLE/serial, transmit LoRa traffic, publish artifacts, or claim production security/interoperability.
+
 ## License
 
 MIT. See `LICENSE`.
